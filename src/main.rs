@@ -1,5 +1,6 @@
 
 use std::fs::File;
+use std::path::Path;
 use std::{env, time::Instant};
 use std::io::{BufWriter, Write, BufReader, BufRead};
 mod buffer_reader{
@@ -61,13 +62,27 @@ fn main() {
       println!("Please pass the destiny path");
       return;
     }
-    let source_path=&args[1];
-    let destiny_path=&args[2];
-
+    let source=&args[1];
+    let destiny=&args[2];
+    let file_name = &get_file_name_from_path(source);
+    let destiny_with_file=add_file_name_to_path(destiny, file_name);
     let start = Instant::now();
-    copy(source_path, destiny_path);
+    copy(&source, &destiny_with_file);
     let duration = start.elapsed();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
+}
+fn get_file_name_from_path(path:&str)->String{
+  let path= Path::new(&path);
+  let file_name = path.file_name()
+                    .expect("the origin path is not a valid file")
+                    .to_str().unwrap();
+  file_name.to_string()
+}
+fn add_file_name_to_path(path:&str,file_name:&str)->String{
+  let path=Path::new(&path);
+  let path_with_file_name=path.join(file_name);
+  let path_str=path_with_file_name.to_str().unwrap();
+  path_str.to_string()
 }
 fn copy(source_path:&str,destiny_path:&str ) {
     let file = File::create(destiny_path)
