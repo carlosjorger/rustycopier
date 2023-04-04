@@ -3,6 +3,34 @@ use std::fs::File;
 use std::path::Path;
 use std::{env, time::Instant};
 use std::io::{BufWriter, Write, BufReader, BufRead};
+struct Progress{
+  total_size:usize,
+  consumed:usize,
+  consumed_ten_scale:usize,
+
+}
+impl Progress {
+  fn from_total_size(total_size:usize)->Self{
+      Self{
+        total_size,
+        consumed:0,
+        consumed_ten_scale:0
+      }
+  }
+  fn percent_of_consume(&self)->f64{
+    (self.consumed as f64)/(self.total_size as f64)
+  }
+  fn percent_of_progress(&self)->f64{
+    (self.consumed_ten_scale as f64)/10.0
+  }
+  fn consume(&mut self,lenght:usize){
+    self.consumed+=lenght;
+    if self.percent_of_consume()>self.percent_of_progress(){
+        self.consumed_ten_scale+=1;
+        println!("# ");
+    }
+  }
+}
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -42,25 +70,19 @@ fn copy(source_path:&str,destiny_path:&str,capacity:usize) {
   .expect("Should have been able to read the destiny path");
   let source_file = File::open(source_path)
   .expect("Should have been able to read the source path");
-  let size= source_file.metadata().unwrap().len() as usize;
-  
+
   let mut stream =BufWriter::with_capacity(capacity, &destiny_file);
   let mut reader=BufReader::with_capacity(capacity, &source_file);
-  
-  let mut consumed=0;
-  let mut progress=0;
+
+  let size= source_file.metadata().unwrap().len() as usize;
+  let mut progress=Progress::from_total_size(size);
+
   loop {
       let buffer=reader.fill_buf().expect("error in the buffer");
       let lenght= buffer.len();
       stream.write(buffer).expect("error to write");
       reader.consume(lenght);
-      consumed+=lenght;
-      let percent_of_consume=(consumed as f64)/(size as f64);
-      let percent_of_progress=(progress as f64)/10.0;
-      if percent_of_consume>percent_of_progress{
-        progress+=1;
-        print!("# ");
-      }
+      progress.consume(lenght);
       if lenght==0 {
           break;
       }
