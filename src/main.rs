@@ -2,19 +2,24 @@
 use std::fs::File;
 use std::path::Path;
 use std::{env, time::Instant};
-use std::io::{BufWriter, Write, BufReader, BufRead};
+use std::io::{BufWriter, Write, BufReader, BufRead, stdout, Stdout};
+
+use crossterm::{QueueableCommand, cursor,terminal};
 struct Progress{
   total_size:usize,
   consumed:usize,
   consumed_ten_scale:usize,
-
+  progress_bar: String,
+  stdout:Stdout
 }
 impl Progress {
   fn from_total_size(total_size:usize)->Self{
       Self{
         total_size,
         consumed:0,
-        consumed_ten_scale:0
+        consumed_ten_scale:0,
+        progress_bar:String::from(""),
+        stdout:stdout()
       }
   }
   fn percent_of_consume(&self)->f64{
@@ -27,8 +32,17 @@ impl Progress {
     self.consumed+=lenght;
     if self.percent_of_consume()>self.percent_of_progress(){
         self.consumed_ten_scale+=1;
-        println!("# ");
+        self.progress_bar.push('#');
+        let temp=(self.consumed_ten_scale*2) as u16;
+        self.stdout.queue(cursor::MoveToColumn(temp)).unwrap();
+        print!("# ");
     }
+    self.stdout.queue(cursor::MoveToColumn(22)).unwrap()
+                .queue(terminal::Clear(terminal::ClearType::FromCursorDown)).unwrap();
+    
+    print!("{}/10",(self.percent_of_consume() as f32)*10.0);
+    self.stdout.flush().unwrap();
+
   }
 }
 fn main() {
@@ -76,7 +90,7 @@ fn copy(source_path:&str,destiny_path:&str,capacity:usize) {
 
   let size= source_file.metadata().unwrap().len() as usize;
   let mut progress=Progress::from_total_size(size);
-
+  println!("");
   loop {
       let buffer=reader.fill_buf().expect("error in the buffer");
       let lenght= buffer.len();
