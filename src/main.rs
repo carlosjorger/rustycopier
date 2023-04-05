@@ -9,7 +9,6 @@ struct Progress{
   total_size:usize,
   consumed:usize,
   consumed_ten_scale:usize,
-  progress_bar: String,
   stdout:Stdout
 }
 impl Progress {
@@ -18,7 +17,6 @@ impl Progress {
         total_size,
         consumed:0,
         consumed_ten_scale:0,
-        progress_bar:String::from(""),
         stdout:stdout()
       }
   }
@@ -32,15 +30,14 @@ impl Progress {
     self.consumed+=lenght;
     if self.percent_of_consume()>self.percent_of_progress(){
         self.consumed_ten_scale+=1;
-        self.progress_bar.push('#');
-        let temp=(self.consumed_ten_scale*2) as u16;
-        self.stdout.queue(cursor::MoveToColumn(temp)).unwrap();
+        let column_position=(self.consumed_ten_scale*2) as u16;
+        self.stdout.queue(cursor::MoveToColumn(column_position)).unwrap();
         print!("# ");
     }
     self.stdout.queue(cursor::MoveToColumn(22)).unwrap()
                 .queue(terminal::Clear(terminal::ClearType::FromCursorDown)).unwrap();
     
-    print!("{}/10",(self.percent_of_consume() as f32)*10.0);
+    print!("{}/100",(self.percent_of_consume() as f32)*100.0);
     self.stdout.flush().unwrap();
 
   }
