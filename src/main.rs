@@ -5,41 +5,57 @@ use std::{env, time::Instant};
 use std::io::{BufWriter, Write, BufReader, BufRead, stdout, Stdout};
 
 use crossterm::{QueueableCommand, cursor,terminal};
+
+struct ProgressBar{
+  stdout:Stdout,
+  scale:usize
+}
+impl ProgressBar {
+    fn progress_bar(scale:usize)->Self{
+      Self { stdout:stdout(),scale:scale }
+    }
+    fn draw_a_bar(&mut self,progress_base_ten:usize){
+      let column_position=(progress_base_ten) as u16;
+      self.stdout.queue(cursor::MoveToColumn(column_position)).unwrap();
+      print!("=");
+    }
+    fn change_progress_number(&mut self,percent_of_consume:f64){
+      self.stdout.queue(cursor::MoveToColumn((self.scale+2) as u16)).unwrap()
+                      .queue(terminal::Clear(terminal::ClearType::FromCursorDown)).unwrap();
+      print!("{}/100",(percent_of_consume as f32)*100.0);
+      self.stdout.flush().unwrap();
+    }
+}
 struct Progress{
   total_size:usize,
-  consumed:usize,
-  consumed_ten_scale:usize,
-  stdout:Stdout
+  consumed_size:usize,
+  approximate_progres:usize,
+  progress_bar:ProgressBar,
+  number_of_bars:usize
 }
 impl Progress {
   fn from_total_size(total_size:usize)->Self{
       Self{
         total_size,
-        consumed:0,
-        consumed_ten_scale:0,
-        stdout:stdout()
+        consumed_size:0,
+        approximate_progres:0,
+        progress_bar:ProgressBar::progress_bar(25),
+        number_of_bars:25
       }
   }
   fn percent_of_consume(&self)->f64{
-    (self.consumed as f64)/(self.total_size as f64)
+    (self.consumed_size as f64)/(self.total_size as f64)
   }
   fn percent_of_progress(&self)->f64{
-    (self.consumed_ten_scale as f64)/10.0
+    (self.approximate_progres as f64)/(self.number_of_bars as f64)
   }
   fn consume(&mut self,lenght:usize){
-    self.consumed+=lenght;
+    self.consumed_size+=lenght;
     if self.percent_of_consume()>self.percent_of_progress(){
-        self.consumed_ten_scale+=1;
-        let column_position=(self.consumed_ten_scale*2) as u16;
-        self.stdout.queue(cursor::MoveToColumn(column_position)).unwrap();
-        print!("# ");
+        self.approximate_progres+=1;
+        self.progress_bar.draw_a_bar(self.approximate_progres);
     }
-    self.stdout.queue(cursor::MoveToColumn(22)).unwrap()
-                .queue(terminal::Clear(terminal::ClearType::FromCursorDown)).unwrap();
-    
-    print!("{}/100",(self.percent_of_consume() as f32)*100.0);
-    self.stdout.flush().unwrap();
-
+    self.progress_bar.change_progress_number(self.percent_of_consume())
   }
 }
 fn main() {
