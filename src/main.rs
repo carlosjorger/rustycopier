@@ -17,12 +17,24 @@ impl ProgressBar {
     fn draw_a_bar(&mut self,progress_base_ten:usize){
       let column_position=(progress_base_ten) as u16;
       self.stdout.queue(cursor::MoveToColumn(column_position)).unwrap();
-      print!("=");
+      if progress_base_ten==self.scale {
+        print!("=");         
+      }
+      else {
+        print!("=>");
+      }
     }
-    fn change_progress_number(&mut self,percent_of_consume:f64){
+    fn change_progress_number(&mut self,fraction_of_consume:f64){
       self.stdout.queue(cursor::MoveToColumn((self.scale+2) as u16)).unwrap()
                       .queue(terminal::Clear(terminal::ClearType::FromCursorDown)).unwrap();
-      print!("{}/100",(percent_of_consume as f32)*100.0);
+      let percent_of_consume=(fraction_of_consume as f32)*100.0;
+      if fraction_of_consume==1.0 {
+        print!("{}/100",format!("{:}",percent_of_consume));    
+      }
+      else{
+        print!("{}/100",format!("{:.2}",percent_of_consume));
+      }
+      
       self.stdout.flush().unwrap();
     }
 }
@@ -35,12 +47,13 @@ struct Progress{
 }
 impl Progress {
   fn from_total_size(total_size:usize)->Self{
+      const NUMBER_OF_BARS:usize=25;
       Self{
         total_size,
         consumed_size:0,
         approximate_progres:0,
-        progress_bar:ProgressBar::progress_bar(25),
-        number_of_bars:25
+        progress_bar:ProgressBar::progress_bar(NUMBER_OF_BARS),
+        number_of_bars:NUMBER_OF_BARS
       }
   }
   fn percent_of_consume(&self)->f64{
