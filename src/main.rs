@@ -2,74 +2,80 @@
 use std::fs::File;
 use std::path::Path;
 use std::{env, time::Instant};
-use std::io::{BufWriter, Write, BufReader, BufRead, stdout, Stdout};
+use std::io::{BufWriter, Write, BufReader, BufRead};
 
-use crossterm::{QueueableCommand, cursor,terminal};
 
-struct ProgressBar{
-  stdout:Stdout,
-  scale:usize
-}
-impl ProgressBar {
-    fn progress_bar(scale:usize)->Self{
-      Self { stdout:stdout(),scale:scale }
-    }
-    fn draw_a_bar(&mut self,progress_base_ten:usize){
-      let column_position=(progress_base_ten) as u16;
-      self.stdout.queue(cursor::MoveToColumn(column_position)).unwrap();
-      if progress_base_ten==self.scale {
-        print!("=");         
+mod progress{
+    use std::io::{Stdout, stdout, Write};
+
+    use crossterm::{cursor, QueueableCommand, terminal};
+
+  struct ProgressBar{
+    stdout:Stdout,
+    scale:usize
+  }
+  impl ProgressBar {
+      fn progress_bar(scale:usize)->Self{
+        Self { stdout:stdout(),scale }
       }
-      else {
-        print!("=>");
+      fn draw_a_bar(&mut self,progress_base_ten:usize){
+        let column_position=(progress_base_ten) as u16;
+        self.stdout.queue(cursor::MoveToColumn(column_position)).unwrap();
+        if progress_base_ten==self.scale {
+          print!("=");         
+        }
+        else {
+          print!("=>");
+        }
       }
-    }
-    fn change_progress_number(&mut self,fraction_of_consume:f64){
-      self.stdout.queue(cursor::MoveToColumn((self.scale+2) as u16)).unwrap()
-                      .queue(terminal::Clear(terminal::ClearType::FromCursorDown)).unwrap();
-      let percent_of_consume=(fraction_of_consume as f32)*100.0;
-      if fraction_of_consume==1.0 {
-        print!("{}/100",format!("{:}",percent_of_consume));    
-      }
-      else{
-        print!("{}/100",format!("{:.2}",percent_of_consume));
-      }
-      
-      self.stdout.flush().unwrap();
-    }
-}
-struct Progress{
-  total_size:usize,
-  consumed_size:usize,
-  approximate_progres:usize,
-  progress_bar:ProgressBar,
-  number_of_bars:usize
-}
-impl Progress {
-  fn from_total_size(total_size:usize)->Self{
-      const NUMBER_OF_BARS:usize=25;
-      Self{
-        total_size,
-        consumed_size:0,
-        approximate_progres:0,
-        progress_bar:ProgressBar::progress_bar(NUMBER_OF_BARS),
-        number_of_bars:NUMBER_OF_BARS
+      fn change_progress_number(&mut self,fraction_of_consume:f64){
+        self.stdout.queue(cursor::MoveToColumn((self.scale+2) as u16)).unwrap()
+                        .queue(terminal::Clear(terminal::ClearType::FromCursorDown)).unwrap();
+        let percent_of_consume=(fraction_of_consume as f32)*100.0;
+        if fraction_of_consume==1.0 {
+          print!("{}/100",format!("{:}",percent_of_consume));    
+        }
+        else{
+          print!("{}/100",format!("{:.2}",percent_of_consume));
+        }
+        
+        self.stdout.flush().unwrap();
       }
   }
-  fn percent_of_consume(&self)->f64{
-    (self.consumed_size as f64)/(self.total_size as f64)
+  pub struct Progress{
+    total_size:usize,
+    consumed_size:usize,
+    approximate_progres:usize,
+    progress_bar:ProgressBar,
+    number_of_bars:usize
   }
-  fn percent_of_progress(&self)->f64{
-    (self.approximate_progres as f64)/(self.number_of_bars as f64)
-  }
-  fn consume(&mut self,lenght:usize){
-    self.consumed_size+=lenght;
-    if self.percent_of_consume()>self.percent_of_progress(){
-        self.approximate_progres+=1;
-        self.progress_bar.draw_a_bar(self.approximate_progres);
+  impl Progress {
+    pub fn from_total_size(total_size:usize)->Self{
+        const NUMBER_OF_BARS:usize=25;
+        Self{
+          total_size,
+          consumed_size:0,
+          approximate_progres:0,
+          progress_bar:ProgressBar::progress_bar(NUMBER_OF_BARS),
+          number_of_bars:NUMBER_OF_BARS
+        }
     }
-    self.progress_bar.change_progress_number(self.percent_of_consume())
+    fn percent_of_consume(&self)->f64{
+      (self.consumed_size as f64)/(self.total_size as f64)
+    }
+    fn percent_of_progress(&self)->f64{
+      (self.approximate_progres as f64)/(self.number_of_bars as f64)
+    }
+    pub fn consume(&mut self,lenght:usize){
+      self.consumed_size+=lenght;
+      if self.percent_of_consume()>self.percent_of_progress(){
+          self.approximate_progres+=1;
+          self.progress_bar.draw_a_bar(self.approximate_progres);
+      }
+      self.progress_bar.change_progress_number(self.percent_of_consume())
+    }
   }
+
 }
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -115,7 +121,7 @@ fn copy(source_path:&str,destiny_path:&str,capacity:usize) {
   let mut reader=BufReader::with_capacity(capacity, &source_file);
 
   let size= source_file.metadata().unwrap().len() as usize;
-  let mut progress=Progress::from_total_size(size);
+  let mut progress=progress::Progress::from_total_size(size);
   println!("");
   loop {
       let buffer=reader.fill_buf().expect("error in the buffer");
