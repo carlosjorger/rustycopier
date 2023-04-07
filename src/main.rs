@@ -1,10 +1,38 @@
 mod progress_bar;
 
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::Path;
 use std::{env, time::Instant};
 
+struct Folder {
+    name: String,
+    sub_folders: Vec<Folder>,
+    files: Vec<File>,
+}
+impl Folder {
+    fn from_path(path: &str) -> Self {
+        let paths = fs::read_dir(path).expect("invalid path");
+        let mut sub_folders: Vec<Folder> = Vec::new();
+        let mut files: Vec<File> = Vec::new();
+
+        for path in paths {
+            let path = path.expect("invalid path").path();
+            if path.is_dir() {
+                let dir = Folder::from_path(path.to_str().expect("invalid dir"));
+                sub_folders.push(dir);
+            } else if path.is_file() {
+                let file = File::open(path.to_str().unwrap()).expect("invalid file");
+                files.push(file);
+            }
+        }
+        Self {
+            name: String::from(path),
+            files,
+            sub_folders,
+        }
+    }
+}
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -19,6 +47,7 @@ fn main() {
 
     let source = &args[1];
     let destiny = &args[2];
+    // let folder = Folder::from_path(&destiny);
     let file_name = &get_file_name_from_path(source);
     let destiny_with_file = add_file_name_to_path(destiny, file_name);
     let start = Instant::now();
