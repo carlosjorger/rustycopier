@@ -1,6 +1,6 @@
 mod progress_bar;
 
-use std::collections::{linked_list, LinkedList};
+use std::collections::LinkedList;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
@@ -8,14 +8,19 @@ use std::{env, time::Instant};
 
 struct Folder {
     name: String,
-    // sub_folders: Vec<Folder>,
     files: Vec<PathBuf>,
 }
 impl Folder {
     fn from_path(path: &str) -> Self {
-        let mut files: Vec<PathBuf> = Vec::new();
+        let files: Vec<PathBuf> = Vec::new();
+        Self {
+            name: String::from(path),
+            files,
+        }
+    }
+    fn load_files_from_path(&mut self) {
         let mut linked_list: LinkedList<PathBuf> = LinkedList::new();
-        let path_buf = PathBuf::from(path);
+        let path_buf = PathBuf::from(&self.name);
         linked_list.push_back(path_buf);
         while linked_list.len() > 0 {
             let path_buf = linked_list.pop_back().unwrap();
@@ -24,17 +29,14 @@ impl Folder {
                 let path = path.expect("invalid path").path();
                 if path.is_dir() {
                     linked_list.push_back(path);
-                    // let path = path.to_str().expect("invalid dir");
-                    // sub_folders.push(dir);
                 } else if path.is_file() {
-                    files.push(path);
+                    self.files.push(path);
                 }
             }
         }
-        Self {
-            name: String::from(path),
-            files,
-        }
+    }
+    fn copy_to(path: &str) {
+        todo!()
     }
 }
 fn main() {
@@ -51,8 +53,8 @@ fn main() {
 
     let source = &args[1];
     let destiny = &args[2];
-    let folder = Folder::from_path(&destiny);
-
+    let mut folder = Folder::from_path(&destiny);
+    folder.load_files_from_path();
     let file_name = &get_file_name_from_path(source);
     let destiny_with_file = add_file_name_to_path(destiny, file_name);
     let start = Instant::now();
