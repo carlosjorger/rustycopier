@@ -22,7 +22,7 @@ impl Folder {
         let mut linked_list: LinkedList<PathBuf> = LinkedList::new();
         let path_buf = PathBuf::from(&self.name);
         linked_list.push_back(path_buf);
-        while linked_list.len() > 0 {
+        while !linked_list.is_empty() {
             let path_buf = linked_list.pop_back().unwrap();
             let paths = fs::read_dir(path_buf).expect("invalid path");
             for path in paths {
@@ -53,12 +53,12 @@ fn main() {
 
     let source = &args[1];
     let destiny = &args[2];
-    let mut folder = Folder::from_path(&destiny);
+    let mut folder = Folder::from_path(destiny);
     folder.load_files_from_path();
     let file_name = &get_file_name_from_path(source);
     let destiny_with_file = add_file_name_to_path(destiny, file_name);
     let start = Instant::now();
-    copy(&source, &destiny_with_file, 1024 * 1000);
+    copy(source, &destiny_with_file, 1024 * 1000);
     let duration = start.elapsed();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
 }
@@ -88,11 +88,11 @@ fn copy(source_path: &str, destiny_path: &str, capacity: usize) {
 
     let size = source_file.metadata().unwrap().len() as usize;
     let mut progress = progress_bar::ProgressBar::from_total_size(size);
-    println!("");
+    println!();
     loop {
         let buffer = reader.fill_buf().expect("error in the buffer");
         let lenght = buffer.len();
-        stream.write(buffer).expect("error to write");
+        stream.write_all(buffer).expect("error to write");
         reader.consume(lenght);
         progress.consume(lenght);
         if lenght == 0 {
