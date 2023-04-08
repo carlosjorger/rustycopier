@@ -1,35 +1,39 @@
 mod progress_bar;
 
+use std::collections::{linked_list, LinkedList};
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::{env, time::Instant};
 
 struct Folder {
     name: String,
-    sub_folders: Vec<Folder>,
-    files: Vec<File>,
+    // sub_folders: Vec<Folder>,
+    files: Vec<PathBuf>,
 }
 impl Folder {
     fn from_path(path: &str) -> Self {
-        let paths = fs::read_dir(path).expect("invalid path");
-        let mut sub_folders: Vec<Folder> = Vec::new();
-        let mut files: Vec<File> = Vec::new();
-
-        for path in paths {
-            let path = path.expect("invalid path").path();
-            if path.is_dir() {
-                let dir = Folder::from_path(path.to_str().expect("invalid dir"));
-                sub_folders.push(dir);
-            } else if path.is_file() {
-                let file = File::open(path.to_str().unwrap()).expect("invalid file");
-                files.push(file);
+        let mut files: Vec<PathBuf> = Vec::new();
+        let mut linked_list: LinkedList<PathBuf> = LinkedList::new();
+        let path_buf = PathBuf::from(path);
+        linked_list.push_back(path_buf);
+        while linked_list.len() > 0 {
+            let path_buf = linked_list.pop_back().unwrap();
+            let paths = fs::read_dir(path_buf).expect("invalid path");
+            for path in paths {
+                let path = path.expect("invalid path").path();
+                if path.is_dir() {
+                    linked_list.push_back(path);
+                    // let path = path.to_str().expect("invalid dir");
+                    // sub_folders.push(dir);
+                } else if path.is_file() {
+                    files.push(path);
+                }
             }
         }
         Self {
             name: String::from(path),
             files,
-            sub_folders,
         }
     }
 }
@@ -47,7 +51,8 @@ fn main() {
 
     let source = &args[1];
     let destiny = &args[2];
-    // let folder = Folder::from_path(&destiny);
+    let folder = Folder::from_path(&destiny);
+
     let file_name = &get_file_name_from_path(source);
     let destiny_with_file = add_file_name_to_path(destiny, file_name);
     let start = Instant::now();
