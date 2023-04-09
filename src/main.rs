@@ -1,6 +1,6 @@
 // mod progress_bar;
+mod copier;
 mod folder;
-
 use std::{env, time::Instant};
 
 use crate::folder::Folder;
