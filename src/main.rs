@@ -35,22 +35,22 @@ impl Folder {
         }
     }
     fn copy_to(&self, path: &str) {
-        let patent_folder = Path::new(&self.name)
+        for file in &self.files {
+            self.create_file(path, file);
+        }
+    }
+    fn create_file(&self, path: &str, file: &Path) {
+        let parent_path = Path::new(&self.name)
             .parent()
             .expect("doestn have a parent");
-        for file in &self.files {
-            let file_whithout_path = file
-                .strip_prefix(patent_folder)
-                .expect("is not a prefix of the file");
-            let destiny_path = Path::new(path).join(file_whithout_path);
-            let destiny_paretnt_path = destiny_path.parent().unwrap();
-            create_dir_all(destiny_paretnt_path).expect("error creating the path");
-            println!("{}", destiny_path.to_str().unwrap());
-            println!("{}", destiny_path.parent().unwrap().to_str().unwrap());
-
-            let _ = File::create(&destiny_path)
-                .expect("Should have been able to read the destiny path");
-        }
+        let file_whithout_path = file
+            .strip_prefix(parent_path)
+            .expect("is not a prefix of the file");
+        let destiny_path = Path::new(path).join(file_whithout_path);
+        let destiny_parent_path = destiny_path.parent().unwrap();
+        create_dir_all(destiny_parent_path).expect("error creating the path");
+        let _ =
+            File::create(&destiny_path).expect("Should have been able to read the destiny path");
     }
 }
 fn main() {
@@ -67,10 +67,10 @@ fn main() {
 
     let source = &args[1];
     let destiny = &args[2];
-    let mut folder = Folder::from_path(&source);
+    let mut folder = Folder::from_path(source);
     folder.load_files_from_path();
     let start = Instant::now();
-    folder.copy_to(&destiny);
+    folder.copy_to(destiny);
     let duration = start.elapsed();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
 }
