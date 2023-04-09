@@ -1,8 +1,7 @@
-mod progress_bar;
+// mod progress_bar;
 
 use std::collections::LinkedList;
-use std::fs::{self, File};
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::fs::{self, create_dir_all, File};
 use std::path::{Path, PathBuf};
 use std::{env, time::Instant};
 
@@ -35,8 +34,23 @@ impl Folder {
             }
         }
     }
-    fn copy_to(path: &str) {
-        todo!()
+    fn copy_to(&self, path: &str) {
+        let patent_folder = Path::new(&self.name)
+            .parent()
+            .expect("doestn have a parent");
+        for file in &self.files {
+            let file_whithout_path = file
+                .strip_prefix(patent_folder)
+                .expect("is not a prefix of the file");
+            let destiny_path = Path::new(path).join(file_whithout_path);
+            let destiny_paretnt_path = destiny_path.parent().unwrap();
+            create_dir_all(destiny_paretnt_path).expect("error creating the path");
+            println!("{}", destiny_path.to_str().unwrap());
+            println!("{}", destiny_path.parent().unwrap().to_str().unwrap());
+
+            let _ = File::create(&destiny_path)
+                .expect("Should have been able to read the destiny path");
+        }
     }
 }
 fn main() {
@@ -53,51 +67,35 @@ fn main() {
 
     let source = &args[1];
     let destiny = &args[2];
-    let mut folder = Folder::from_path(destiny);
+    let mut folder = Folder::from_path(&source);
     folder.load_files_from_path();
-    let file_name = &get_file_name_from_path(source);
-    let destiny_with_file = add_file_name_to_path(destiny, file_name);
     let start = Instant::now();
-    copy(source, &destiny_with_file, 1024 * 1000);
+    folder.copy_to(&destiny);
     let duration = start.elapsed();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
 }
-fn get_file_name_from_path(path: &str) -> String {
-    let path = Path::new(&path);
-    let file_name = path
-        .file_name()
-        .expect("the origin path is not a valid file")
-        .to_str()
-        .unwrap();
-    file_name.to_string()
-}
-fn add_file_name_to_path(path: &str, file_name: &str) -> String {
-    let path = Path::new(&path);
-    let path_with_file_name = path.join(file_name);
-    let path_str = path_with_file_name.to_str().unwrap();
-    path_str.to_string()
-}
-fn copy(source_path: &str, destiny_path: &str, capacity: usize) {
-    let destiny_file =
-        File::create(destiny_path).expect("Should have been able to read the destiny path");
-    let source_file =
-        File::open(source_path).expect("Should have been able to read the source path");
 
-    let mut stream = BufWriter::with_capacity(capacity, &destiny_file);
-    let mut reader = BufReader::with_capacity(capacity, &source_file);
+// fn copy(source_path: &str, destiny_path: &str, capacity: usize) {
+//     let destiny_file =
+//         File::create(destiny_path).expect("Should have been able to read the destiny path");
+//     let source_file =
+//         File::open(source_path).expect("Should have been able to read the source path");
 
-    let size = source_file.metadata().unwrap().len() as usize;
-    let mut progress = progress_bar::ProgressBar::from_total_size(size);
-    println!();
-    loop {
-        let buffer = reader.fill_buf().expect("error in the buffer");
-        let lenght = buffer.len();
-        stream.write_all(buffer).expect("error to write");
-        reader.consume(lenght);
-        progress.consume(lenght);
-        if lenght == 0 {
-            break;
-        }
-    }
-    println!()
-}
+//     let mut stream = BufWriter::with_capacity(capacity, &destiny_file);
+//     let mut reader = BufReader::with_capacity(capacity, &source_file);
+
+//     let size = source_file.metadata().unwrap().len() as usize;
+//     let mut progress = progress_bar::ProgressBar::from_total_size(size);
+//     println!();
+//     loop {
+//         let buffer = reader.fill_buf().expect("error in the buffer");
+//         let lenght = buffer.len();
+//         stream.write_all(buffer).expect("error to write");
+//         reader.consume(lenght);
+//         progress.consume(lenght);
+//         if lenght == 0 {
+//             break;
+//         }
+//     }
+//     println!()
+// }
