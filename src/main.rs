@@ -40,17 +40,21 @@ impl Folder {
         }
     }
     fn create_file(&self, path: &str, file: &Path) {
+        let file_path_from_folder = self.get_file_path_from_folder(file);
+        let destiny_path = Path::new(path).join(file_path_from_folder);
+        let destiny_parent_path = destiny_path.parent().unwrap();
+        create_dir_all(destiny_parent_path).expect("error creating the path");
+        let _ =
+            File::create(&destiny_path).expect("Should have been able to read the destiny path");
+    }
+    fn get_file_path_from_folder<'a>(&'a self, file: &'a Path) -> &Path {
         let parent_path = Path::new(&self.name)
             .parent()
             .expect("doestn have a parent");
         let file_whithout_path = file
             .strip_prefix(parent_path)
             .expect("is not a prefix of the file");
-        let destiny_path = Path::new(path).join(file_whithout_path);
-        let destiny_parent_path = destiny_path.parent().unwrap();
-        create_dir_all(destiny_parent_path).expect("error creating the path");
-        let _ =
-            File::create(&destiny_path).expect("Should have been able to read the destiny path");
+        file_whithout_path
     }
 }
 fn main() {
