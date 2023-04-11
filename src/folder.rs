@@ -7,6 +7,7 @@ use crate::copier::FileToCopy;
 pub struct Folder {
     pub name: String,
     pub files: Vec<PathBuf>,
+    total_size: usize,
 }
 impl Folder {
     pub fn from_path(path: &str) -> Self {
@@ -14,6 +15,7 @@ impl Folder {
         Self {
             name: String::from(path),
             files,
+            total_size: 0,
         }
     }
     pub fn load_files_from_path(&mut self) {
@@ -28,6 +30,8 @@ impl Folder {
                 if path.is_dir() {
                     linked_list.push_back(path);
                 } else if path.is_file() {
+                    let file_size = path.metadata().unwrap().len() as usize;
+                    self.total_size += file_size;
                     self.files.push(path);
                 }
             }
@@ -43,7 +47,7 @@ impl Folder {
             .rev()
             .collect();
 
-        let mut copier = Copier::from_folder_to_dir(&file_in_target_dir);
+        let mut copier = Copier::from_folder_to_dir(&file_in_target_dir, self.total_size);
         copier.copy();
     }
     fn get_file_path_from_folder(&self, file: &Path) -> PathBuf {

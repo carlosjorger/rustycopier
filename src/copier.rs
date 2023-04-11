@@ -6,23 +6,28 @@ use std::{
 };
 
 pub struct FileToCopy {
-    file: PathBuf,
-    to_file: PathBuf,
+    source_file: PathBuf,
+    target_file: PathBuf,
 }
 impl FileToCopy {
     pub fn from_files(to_file: PathBuf, file: PathBuf) -> Self {
-        Self { file, to_file }
+        Self {
+            source_file: file,
+            target_file: to_file,
+        }
     }
 }
 pub struct Copier<'a> {
     files: &'a Vec<FileToCopy>,
     paused: bool,
+    total_size: usize,
 }
 impl<'a> Copier<'a> {
-    pub fn from_folder_to_dir(files: &'a Vec<FileToCopy>) -> Self {
+    pub fn from_folder_to_dir(files: &'a Vec<FileToCopy>, total_size: usize) -> Self {
         Self {
             files,
             paused: false,
+            total_size,
         }
     }
     pub fn copy(&mut self) {
@@ -34,17 +39,18 @@ impl<'a> Copier<'a> {
         }
     }
     fn create_file(&self, file_to_copy: &FileToCopy) -> Result<(), io::Error> {
-        let file = &file_to_copy.to_file;
+        let file = &file_to_copy.target_file;
         let file_folder = file.parent().expect("doestn have a parent");
         create_dir_all(file_folder).expect("error creating the folder");
         println!(
             "<{},{},{}>",
             file_folder.to_str().unwrap(),
-            file_to_copy.file.to_str().unwrap(),
-            file_to_copy.to_file.to_str().unwrap()
+            file_to_copy.source_file.to_str().unwrap(),
+            file_to_copy.target_file.to_str().unwrap()
         );
-        let destiny_file = File::open(&file_to_copy.file).expect("error opening the file");
-        let to_copy_file = File::create(&file_to_copy.to_file).expect("error creating the file");
+        let destiny_file = File::open(&file_to_copy.source_file).expect("error opening the file");
+        let to_copy_file =
+            File::create(&file_to_copy.target_file).expect("error creating the file");
 
         self.copy_file(destiny_file, to_copy_file, 1024);
         Ok(())
