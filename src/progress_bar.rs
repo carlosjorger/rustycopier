@@ -23,20 +23,32 @@ impl ProgressBarDrawer {
             print!("=>");
         }
     }
+    fn print_new_file(&mut self, file_name: &str) {
+        print!("\n");
+        self.clean_from_cursor_down();
+        print!("{file_name}");
+        self.stdout.queue(cursor::MoveUp(1)).unwrap();
+        self.stdout.flush().unwrap();
+    }
+
     fn change_progress_number(&mut self, fraction_of_consume: f64) {
         self.stdout
             .queue(cursor::MoveToColumn((self.scale + 2) as u16))
-            .unwrap()
-            .queue(terminal::Clear(terminal::ClearType::FromCursorDown))
             .unwrap();
         let percent_of_consume = (fraction_of_consume as f32) * 100.0;
         if fraction_of_consume == 1.0 {
             print!("{}/100", format_args!("{:}", percent_of_consume));
+            self.clean_from_cursor_down();
         } else {
             print!("{}/100", format_args!("{:.2}", percent_of_consume));
         }
 
         self.stdout.flush().unwrap();
+    }
+    fn clean_from_cursor_down(&mut self) {
+        self.stdout
+            .queue(terminal::Clear(terminal::ClearType::FromCursorDown))
+            .unwrap();
     }
 }
 pub struct ProgressBar {
@@ -62,6 +74,9 @@ impl ProgressBar {
     }
     fn percent_of_progress(&self) -> f64 {
         (self.approximate_progres as f64) / (self.number_of_bars as f64)
+    }
+    pub fn set_new_file(&mut self, file_name: &str) {
+        self.progress_bar.print_new_file(file_name);
     }
     pub fn consume(&mut self, lenght: usize) {
         self.consumed_size += lenght;

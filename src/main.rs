@@ -25,6 +25,7 @@ fn main() {
     let start = Instant::now();
     folder.copy_to(destiny);
     let duration = start.elapsed();
+    println!();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
 }
 

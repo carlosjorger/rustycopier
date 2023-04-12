@@ -20,14 +20,14 @@ impl FileToCopy {
 pub struct Copier<'a> {
     files: &'a Vec<FileToCopy>,
     paused: bool,
-    total_size: usize,
+    progress_bar: progress_bar::ProgressBar,
 }
 impl<'a> Copier<'a> {
     pub fn from_folder_to_dir(files: &'a Vec<FileToCopy>, total_size: usize) -> Self {
         Self {
             files,
             paused: false,
-            total_size,
+            progress_bar: progress_bar::ProgressBar::from_total_size(total_size),
         }
     }
     pub fn copy(&mut self) {
@@ -38,40 +38,38 @@ impl<'a> Copier<'a> {
             }
         }
     }
-    fn create_file(&self, file_to_copy: &FileToCopy) -> Result<(), io::Error> {
+    fn create_file(&mut self, file_to_copy: &FileToCopy) -> Result<(), io::Error> {
         let file = &file_to_copy.target_file;
         let file_folder = file.parent().expect("doestn have a parent");
         create_dir_all(file_folder).expect("error creating the folder");
-        println!(
-            "<{},{},{}>",
-            file_folder.to_str().unwrap(),
-            file_to_copy.source_file.to_str().unwrap(),
-            file_to_copy.target_file.to_str().unwrap()
-        );
+
         let destiny_file = File::open(&file_to_copy.source_file).expect("error opening the file");
         let to_copy_file =
             File::create(&file_to_copy.target_file).expect("error creating the file");
-
+        self.progress_bar.set_new_file(
+            &file_to_copy
+                .target_file
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap(),
+        );
         self.copy_file(destiny_file, to_copy_file, 1024);
         Ok(())
     }
-    fn copy_file(&self, source_file: File, destiny_file: File, capacity: usize) {
+    fn copy_file(&mut self, source_file: File, destiny_file: File, capacity: usize) {
         let mut stream = BufWriter::with_capacity(capacity, &destiny_file);
         let mut reader = BufReader::with_capacity(capacity, &source_file);
 
-        let size = source_file.metadata().unwrap().len() as usize;
-        let mut progress = progress_bar::ProgressBar::from_total_size(size);
-        println!();
         loop {
             let buffer = reader.fill_buf().expect("error in the buffer");
             let lenght = buffer.len();
             stream.write_all(buffer).expect("error to write");
             reader.consume(lenght);
-            progress.consume(lenght);
+            self.progress_bar.consume(lenght);
             if lenght == 0 {
                 break;
             }
         }
-        println!()
     }
 }
