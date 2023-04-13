@@ -28,28 +28,3 @@ fn main() {
     println!();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
 }
-
-// fn copy(source_path: &str, destiny_path: &str, capacity: usize) {
-//     let destiny_file =
-//         File::create(destiny_path).expect("Should have been able to read the destiny path");
-//     let source_file =
-//         File::open(source_path).expect("Should have been able to read the source path");
-
-//     let mut stream = BufWriter::with_capacity(capacity, &destiny_file);
-//     let mut reader = BufReader::with_capacity(capacity, &source_file);
-
-//     let size = source_file.metadata().unwrap().len() as usize;
-//     let mut progress = progress_bar::ProgressBar::from_total_size(size);
-//     println!();
-//     loop {
-//         let buffer = reader.fill_buf().expect("error in the buffer");
-//         let lenght = buffer.len();
-//         stream.write_all(buffer).expect("error to write");
-//         reader.consume(lenght);
-//         progress.consume(lenght);
-//         if lenght == 0 {
-//             break;
-//         }
-//     }
-//     println!()
-// }

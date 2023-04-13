@@ -24,7 +24,7 @@ impl ProgressBarDrawer {
         }
     }
     fn print_new_file(&mut self, file_name: &str) {
-        print!("\n");
+        println!();
         self.clean_from_cursor_down();
         print!("{file_name}");
         self.stdout.queue(cursor::MoveUp(1)).unwrap();

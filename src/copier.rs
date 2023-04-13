@@ -47,7 +47,7 @@ impl<'a> Copier<'a> {
         let to_copy_file =
             File::create(&file_to_copy.target_file).expect("error creating the file");
         self.progress_bar.set_new_file(
-            &file_to_copy
+            file_to_copy
                 .target_file
                 .file_name()
                 .unwrap()

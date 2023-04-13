@@ -1,5 +1,5 @@
 use std::collections::LinkedList;
-use std::fs::{self};
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::copier::Copier;
@@ -19,16 +19,16 @@ impl Folder {
         }
     }
     pub fn load_files_from_path(&mut self) {
-        let mut linked_list: LinkedList<PathBuf> = LinkedList::new();
+        let mut path_list: LinkedList<PathBuf> = LinkedList::new();
         let path_buf = PathBuf::from(&self.name);
-        linked_list.push_back(path_buf);
-        while !linked_list.is_empty() {
-            let path_buf = linked_list.pop_back().unwrap();
+        path_list.push_back(path_buf);
+        while !path_list.is_empty() {
+            let path_buf = path_list.pop_back().unwrap();
             let paths = fs::read_dir(path_buf).expect("invalid path");
             for path in paths {
                 let path = path.expect("invalid path").path();
                 if path.is_dir() {
-                    linked_list.push_back(path);
+                    path_list.push_back(path);
                 } else if path.is_file() {
                     let file_size = path.metadata().unwrap().len() as usize;
                     self.total_size += file_size;
