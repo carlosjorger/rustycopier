@@ -4,45 +4,34 @@ use std::io::{stdout, Stdout, Write};
 struct ProgressBarDrawer {
     stdout: Stdout,
     scale: usize,
+    progress_window: String,
+    rest_window: String,
 }
 impl ProgressBarDrawer {
     fn progress_bar(scale: usize) -> Self {
+        let progress_window = "=".repeat(scale).to_string();
+        let rest_window = "-".repeat(scale).to_string();
         Self {
             stdout: stdout(),
             scale,
+            progress_window,
+            rest_window,
         }
     }
     fn draw_a_bar(&mut self, progress_base_ten: usize) {
-        let column_position = (progress_base_ten) as u16;
-        self.stdout
-            .queue(cursor::MoveToColumn(column_position))
-            .unwrap();
-        if progress_base_ten == self.scale {
-            print!("=");
-        } else {
-            print!("=>");
-        }
+        print!(
+            "\r Copying: [{}{}] {}%",
+            &self.progress_window[0..progress_base_ten],
+            &self.rest_window[0..(self.scale - progress_base_ten)],
+            (progress_base_ten as f64 * (100.0 / (self.scale as f64))).trunc()
+        );
+        self.stdout.flush().unwrap();
     }
     fn print_new_file(&mut self, file_name: &str) {
         println!();
         self.clean_from_cursor_down();
         print!("{file_name}");
         self.stdout.queue(cursor::MoveUp(1)).unwrap();
-        self.stdout.flush().unwrap();
-    }
-
-    fn change_progress_number(&mut self, fraction_of_consume: f64) {
-        self.stdout
-            .queue(cursor::MoveToColumn((self.scale + 2) as u16))
-            .unwrap();
-        let percent_of_consume = (fraction_of_consume as f32) * 100.0;
-        if fraction_of_consume == 1.0 {
-            print!("{}/100", format_args!("{:}", percent_of_consume));
-            self.clean_from_cursor_down();
-        } else {
-            print!("{}/100", format_args!("{:.2}", percent_of_consume));
-        }
-
         self.stdout.flush().unwrap();
     }
     fn clean_from_cursor_down(&mut self) {
@@ -84,7 +73,5 @@ impl ProgressBar {
             self.approximate_progres += 1;
             self.progress_bar.draw_a_bar(self.approximate_progres);
         }
-        self.progress_bar
-            .change_progress_number(self.percent_of_consume())
     }
 }

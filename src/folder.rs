@@ -4,18 +4,21 @@ use std::path::{Path, PathBuf};
 
 use crate::copier::Copier;
 use crate::copier::FileCopy;
-pub struct Folder {
+pub struct Folder<'a> {
     pub name: String,
     pub files: Vec<PathBuf>,
     total_size: usize,
+    parent_path: &'a Path,
 }
-impl Folder {
-    pub fn from_path(path: &str) -> Self {
+impl<'a> Folder<'a> {
+    pub fn from_path(path: &'a str) -> Self {
         let files: Vec<PathBuf> = Vec::new();
+        let parent_path = Path::new(path).parent().expect("doestn have a parent");
         Self {
             name: String::from(path),
             files,
             total_size: 0,
+            parent_path,
         }
     }
     pub fn load_files_from_path(&mut self) {
@@ -51,11 +54,8 @@ impl Folder {
         copier.start();
     }
     fn get_file_path_from_folder(&self, file: &Path) -> PathBuf {
-        let parent_path = Path::new(&self.name)
-            .parent()
-            .expect("doestn have a parent");
         let file_whithout_path = file
-            .strip_prefix(parent_path)
+            .strip_prefix(self.parent_path)
             .expect("is not a prefix of the file");
         file_whithout_path.to_path_buf()
     }
