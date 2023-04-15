@@ -31,7 +31,7 @@ impl ProgressBarDrawer {
         println!();
         self.clean_from_cursor_down();
         print!("{file_name}");
-        self.stdout.queue(cursor::MoveUp(1)).unwrap();
+        self.stdout.queue(cursor::MoveToPreviousLine(1)).unwrap();
         self.stdout.flush().unwrap();
     }
     fn clean_from_cursor_down(&mut self) {

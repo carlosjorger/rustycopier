@@ -54,7 +54,7 @@ impl<'a> Copier<'a> {
                 .to_str()
                 .unwrap(),
         );
-        self.copy_file(destiny_file, to_copy_file, 1024);
+        self.copy_file(destiny_file, to_copy_file, 1024 * 500);
         Ok(())
     }
     fn copy_file(&mut self, source_file: File, destiny_file: File, capacity: usize) {
