@@ -5,11 +5,11 @@ use std::{
     path::PathBuf,
 };
 
-pub struct FileToCopy {
+pub struct FileCopy {
     source_file: PathBuf,
     target_file: PathBuf,
 }
-impl FileToCopy {
+impl FileCopy {
     pub fn from_files(to_file: PathBuf, file: PathBuf) -> Self {
         Self {
             source_file: file,
@@ -18,19 +18,19 @@ impl FileToCopy {
     }
 }
 pub struct Copier<'a> {
-    files: &'a Vec<FileToCopy>,
+    files: &'a Vec<FileCopy>,
     paused: bool,
     progress_bar: progress_bar::ProgressBar,
 }
 impl<'a> Copier<'a> {
-    pub fn from_folder_to_dir(files: &'a Vec<FileToCopy>, total_size: usize) -> Self {
+    pub fn from_folder_to_dir(files: &'a Vec<FileCopy>, total_size: usize) -> Self {
         Self {
             files,
             paused: false,
             progress_bar: progress_bar::ProgressBar::from_total_size(total_size),
         }
     }
-    pub fn copy(&mut self) {
+    pub fn start(&mut self) {
         for file in self.files {
             if !self.paused {
                 self.create_file(file).expect("error copy the file");
@@ -38,7 +38,7 @@ impl<'a> Copier<'a> {
             }
         }
     }
-    fn create_file(&mut self, file_to_copy: &FileToCopy) -> Result<(), io::Error> {
+    fn create_file(&mut self, file_to_copy: &FileCopy) -> Result<(), io::Error> {
         let file = &file_to_copy.target_file;
         let file_folder = file.parent().expect("doestn have a parent");
         create_dir_all(file_folder).expect("error creating the folder");

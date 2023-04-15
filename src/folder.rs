@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::copier::Copier;
-use crate::copier::FileToCopy;
+use crate::copier::FileCopy;
 pub struct Folder {
     pub name: String,
     pub files: Vec<PathBuf>,
@@ -43,12 +43,12 @@ impl Folder {
             .files
             .clone()
             .into_iter()
-            .map(|f| FileToCopy::from_files(path.join(self.get_file_path_from_folder(&f)), f))
+            .map(|f| FileCopy::from_files(path.join(self.get_file_path_from_folder(&f)), f))
             .rev()
             .collect();
 
         let mut copier = Copier::from_folder_to_dir(&file_in_target_dir, self.total_size);
-        copier.copy();
+        copier.start();
     }
     fn get_file_path_from_folder(&self, file: &Path) -> PathBuf {
         let parent_path = Path::new(&self.name)
