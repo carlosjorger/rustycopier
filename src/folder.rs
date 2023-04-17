@@ -8,12 +8,12 @@ pub struct Folder<'a> {
     pub name: String,
     pub files: Vec<PathBuf>,
     total_size: usize,
-    parent_path: &'a Path,
+    parent_path: Option<&'a Path>,
 }
 impl<'a> Folder<'a> {
     pub fn from_path(path: &'a str) -> Self {
         let files: Vec<PathBuf> = Vec::new();
-        let parent_path = Path::new(path).parent().expect("doestn have a parent");
+        let parent_path = Path::new(path).parent();
         Self {
             name: String::from(path),
             files,
@@ -54,9 +54,12 @@ impl<'a> Folder<'a> {
         copier.start();
     }
     fn get_file_path_from_folder(&self, file: &Path) -> PathBuf {
-        let file_whithout_path = file
-            .strip_prefix(self.parent_path)
-            .expect("is not a prefix of the file");
-        file_whithout_path.to_path_buf()
+        if let Some(parent) = self.parent_path {
+            let file_whithout_path = file
+                .strip_prefix(parent)
+                .expect("is not a prefix of the file");
+            return file_whithout_path.to_path_buf();
+        }
+        file.to_path_buf()
     }
 }
