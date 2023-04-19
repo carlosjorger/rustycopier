@@ -3,9 +3,9 @@ mod config;
 mod copier;
 mod folder;
 mod progress_bar;
+
 use crate::folder::Folder;
 use std::{env, process, time::Instant};
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     let config = config::Config::new(&args).unwrap_or_else(|err| {
@@ -20,3 +20,5 @@ fn main() {
     println!();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
 }
+#[cfg(test)]
+mod test;
