@@ -15,7 +15,7 @@ fn copy_one_file() {
 
     let file_source_path: std::path::PathBuf = source_dir.path().join("poetry.txt");
 
-    let mut file_source = File::create(file_source_path).expect("unable create a new file");
+    let mut file_source = File::create(&file_source_path).expect("unable create a new file");
 
     let msg = b"In the world of coding, a language stands
                             Rust, they call it, with its own demands
@@ -40,18 +40,18 @@ fn copy_one_file() {
         .write_all(msg)
         .expect("unable to write in this temp file");
 
-    let source_dir_str=source_dir.path().to_str().unwrap();
+    let source_dir_str = source_dir.path().to_str().unwrap();
 
-    let folder: Folder = Folder::from_path(source_dir_str);
-    let paths = fs::read_dir(source_dir.path()).expect("invalid path");
-    
+    let mut folder: Folder = Folder::from_path(source_dir_str);
+    folder.load_files_from_path();
+
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
     folder.copy_to(destiny_temp_dir.path().to_str().unwrap());
 
-    let file_destiny_path: std::path::PathBuf = destiny_temp_dir.path().join("poetry.txt");
-    let new_file = File::open(file_destiny_path).expect("unable open the file");
-
-    // assert_eq!(4, 2);
-
-    // source_dir.close().expect("error removing the temp dir");
+    let file_destiny_path: std::path::PathBuf = destiny_temp_dir
+        .path()
+        .join(file_source_path.parent().unwrap().file_name().unwrap())
+        .join("poetry.txt");
+    let new_msg = fs::read(&file_destiny_path).unwrap();
+    assert_eq!(msg.to_vec(), new_msg);
 }
