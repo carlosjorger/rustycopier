@@ -39,11 +39,6 @@ impl<'a> Copier<'a> {
         }
     }
     fn create_file(&mut self, file_to_copy: &FileCopy) -> Result<(), io::Error> {
-        let file = &file_to_copy.target_file;
-        // TODO create the folder only once
-        let file_folder = file.parent().expect("doestn have a parent");
-        create_dir_all(file_folder).expect("error creating the folder");
-
         let destiny_file = File::open(&file_to_copy.source_file).expect("error opening the file");
         let to_copy_file =
             File::create(&file_to_copy.target_file).expect("error creating the file");

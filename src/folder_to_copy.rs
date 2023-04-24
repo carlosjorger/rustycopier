@@ -1,5 +1,5 @@
 use std::collections::LinkedList;
-use std::fs;
+use std::fs::{self, create_dir_all};
 use std::path::{Path, PathBuf};
 
 use crate::copier::Copier;
@@ -42,6 +42,7 @@ impl<'a> FolderToCopy<'a> {
     }
     pub fn copy_to(&self, target_path: &str) {
         let target_path = PathBuf::from(target_path);
+        self.create_source_folder(&target_path);
         let file_in_target_dir = self
             .files
             .clone()
@@ -52,6 +53,15 @@ impl<'a> FolderToCopy<'a> {
 
         let mut copier = Copier::from_folder_to_dir(&file_in_target_dir, self.total_size);
         copier.start();
+    }
+    fn create_source_folder(&self, target_path: &PathBuf) {
+        if self.path.is_dir() {
+            create_dir_all(self.get_path_with_prefix_path(&self.path.to_path_buf(), target_path))
+                .expect("error creating the folder");
+        }
+    }
+    fn get_path_with_prefix_path(&self, path: &PathBuf, prefix_path: &PathBuf) -> PathBuf {
+        prefix_path.join(self.get_file_path_from_folder(path))
     }
     fn get_file_path_from_folder(&self, file: &Path) -> PathBuf {
         if let Some(parent) = self.parent_path {
