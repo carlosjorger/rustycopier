@@ -9,8 +9,8 @@ struct ProgressBarDrawer {
 }
 impl ProgressBarDrawer {
     fn progress_bar(scale: usize) -> Self {
-        let progress_window = "=".repeat(scale).to_string();
-        let rest_window = "-".repeat(scale).to_string();
+        let progress_window = "=".repeat(scale);
+        let rest_window = "-".repeat(scale);
         Self {
             stdout: stdout(),
             scale,
