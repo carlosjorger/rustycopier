@@ -4,7 +4,7 @@ use std::{
     io::{self, BufRead, BufReader, BufWriter, Write},
     path::PathBuf,
 };
-//TODO
+//TODO choose a better type for files
 pub struct FileCopy {
     source_file: PathBuf,
     target_file: PathBuf,
@@ -40,6 +40,7 @@ impl<'a> Copier<'a> {
     }
     fn create_file(&mut self, file_to_copy: &FileCopy) -> Result<(), io::Error> {
         let file = &file_to_copy.target_file;
+        // TODO create the folder only once
         let file_folder = file.parent().expect("doestn have a parent");
         create_dir_all(file_folder).expect("error creating the folder");
 

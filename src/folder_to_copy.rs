@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use crate::copier::Copier;
 use crate::copier::FileCopy;
 pub struct FolderToCopy<'a> {
-    pub name: String,
+    path: &'a Path,
     pub files: Vec<PathBuf>,
     total_size: usize,
     parent_path: Option<&'a Path>,
@@ -15,7 +15,7 @@ impl<'a> FolderToCopy<'a> {
         let files: Vec<PathBuf> = Vec::new();
         let parent_path = Path::new(path).parent();
         Self {
-            name: String::from(path),
+            path: Path::new(path),
             files,
             total_size: 0,
             parent_path,
@@ -23,7 +23,7 @@ impl<'a> FolderToCopy<'a> {
     }
     pub fn load_files_from_path(&mut self) {
         let mut path_list: LinkedList<PathBuf> = LinkedList::new();
-        let path_buf = PathBuf::from(&self.name);
+        let path_buf = PathBuf::from(&self.path);
         path_list.push_back(path_buf);
         while !path_list.is_empty() {
             let path_buf = path_list.pop_back().unwrap();
@@ -40,13 +40,13 @@ impl<'a> FolderToCopy<'a> {
             }
         }
     }
-    pub fn copy_to(&self, path: &str) {
-        let path = PathBuf::from(path);
+    pub fn copy_to(&self, target_path: &str) {
+        let target_path = PathBuf::from(target_path);
         let file_in_target_dir = self
             .files
             .clone()
             .into_iter()
-            .map(|f| FileCopy::from_files(path.join(self.get_file_path_from_folder(&f)), f))
+            .map(|f| FileCopy::from_files(target_path.join(self.get_file_path_from_folder(&f)), f))
             .rev()
             .collect();
 
