@@ -1,6 +1,6 @@
 use crate::progress_bar;
 use std::{
-    fs::{create_dir_all, File},
+    fs::File,
     io::{self, BufRead, BufReader, BufWriter, Write},
     path::PathBuf,
 };

@@ -27,18 +27,25 @@ impl<'a> FolderToCopy<'a> {
         path_list.push_back(path_buf);
         while !path_list.is_empty() {
             let path_buf = path_list.pop_back().unwrap();
+            if path_buf.is_file() {
+                self.save_file(path_buf);
+                continue;
+            }
             let paths = fs::read_dir(path_buf).expect("invalid path");
             for path in paths {
                 let path = path.expect("invalid path").path();
                 if path.is_dir() {
                     path_list.push_back(path);
                 } else if path.is_file() {
-                    let file_size = path.metadata().unwrap().len() as usize;
-                    self.total_size += file_size;
-                    self.files.push(path);
+                    self.save_file(path);
                 }
             }
         }
+    }
+    fn save_file(&mut self, file_path: PathBuf) {
+        let file_size = file_path.metadata().unwrap().len() as usize;
+        self.total_size += file_size;
+        self.files.push(file_path);
     }
     pub fn copy_to(&self, target_path: &str) {
         let target_path = PathBuf::from(target_path);
