@@ -98,8 +98,7 @@ fn copy_one_file() {
 
     let file_destiny_path: std::path::PathBuf = destiny_temp_dir
         .path()
-        .join(file_source_path.parent().unwrap().file_name().unwrap())
-        .join("poetry.txt");
+        .join(file_source_path.file_name().unwrap());
     let new_msg = fs::read(&file_destiny_path).unwrap();
     assert_eq!(msg.to_vec(), new_msg);
 }
