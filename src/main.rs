@@ -1,10 +1,12 @@
 // mod progress_bar;
 mod config;
 mod copier;
-mod folder_to_copy;
+mod file_to_copy;
 mod progress_bar;
+#[cfg(test)]
+mod test;
 
-use crate::folder_to_copy::FolderToCopy;
+use crate::file_to_copy::FileToCopy;
 use std::{env, process, time::Instant};
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -12,7 +14,7 @@ fn main() {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
-    let mut folder = FolderToCopy::from_path(&config.source_path);
+    let mut folder = FileToCopy::from_path(&config.source_path);
     folder.load_files_from_path();
     let start = Instant::now();
     folder.copy_to(&config.target_path);
@@ -20,5 +22,3 @@ fn main() {
     println!();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
 }
-#[cfg(test)]
-mod test;

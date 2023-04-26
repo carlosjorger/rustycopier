@@ -4,13 +4,13 @@ use std::path::{Path, PathBuf};
 
 use crate::copier::Copier;
 use crate::copier::FileCopy;
-pub struct FolderToCopy<'a> {
+pub struct FileToCopy<'a> {
     path: &'a Path,
     pub files: Vec<PathBuf>,
     total_size: usize,
     parent_path: Option<&'a Path>,
 }
-impl<'a> FolderToCopy<'a> {
+impl<'a> FileToCopy<'a> {
     pub fn from_path(path: &'a str) -> Self {
         let files: Vec<PathBuf> = Vec::new();
         let parent_path = Path::new(path).parent();

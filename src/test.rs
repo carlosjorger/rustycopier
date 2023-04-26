@@ -9,7 +9,7 @@ use std::{
 
 use tempdir::TempDir;
 
-use crate::folder_to_copy::FolderToCopy;
+use crate::file_to_copy::FileToCopy;
 
 #[test]
 fn copy_one_file_in_a_folder() {
@@ -40,7 +40,7 @@ fn copy_one_file_in_a_folder() {
 
     let source_dir_str = source_dir.path().to_str().unwrap();
 
-    let mut folder: FolderToCopy = FolderToCopy::from_path(source_dir_str);
+    let mut folder: FileToCopy = FileToCopy::from_path(source_dir_str);
     folder.load_files_from_path();
 
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
@@ -90,7 +90,7 @@ fn copy_one_file() {
 
     let source_dir_str = file_source_path.to_str().unwrap();
 
-    let mut folder: FolderToCopy = FolderToCopy::from_path(source_dir_str);
+    let mut folder: FileToCopy = FileToCopy::from_path(source_dir_str);
     folder.load_files_from_path();
 
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
