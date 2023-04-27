@@ -54,7 +54,7 @@ impl<'a> FileToCopy<'a> {
             .files
             .clone()
             .into_iter()
-            .map(|f| FileCopy::from_files(target_path.join(self.get_file_path_from_folder(&f)), f))
+            .map(|f| FileCopy::from_files(self.get_path_with_prefix_path(&f, &target_path), f))
             .rev()
             .collect();
 
