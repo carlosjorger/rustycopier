@@ -6,7 +6,7 @@ use crate::copier::Copier;
 use crate::copier::FileCopy;
 pub struct FileToCopy<'a> {
     path: &'a Path,
-    pub files: Vec<PathBuf>,
+    files: Vec<PathBuf>,
     total_size: usize,
     parent_path: Option<&'a Path>,
 }
@@ -24,13 +24,13 @@ impl<'a> FileToCopy<'a> {
     pub fn load_files_from_path(&mut self) {
         let mut path_list: LinkedList<PathBuf> = LinkedList::new();
         let path_buf = PathBuf::from(&self.path);
+        if path_buf.is_file() {
+            self.save_file(path_buf);
+            return;
+        }
         path_list.push_back(path_buf);
         while !path_list.is_empty() {
             let path_buf = path_list.pop_back().unwrap();
-            if path_buf.is_file() {
-                self.save_file(path_buf);
-                continue;
-            }
             let paths = fs::read_dir(path_buf).expect("invalid path");
             for path in paths {
                 let path = path.expect("invalid path").path();
@@ -55,7 +55,6 @@ impl<'a> FileToCopy<'a> {
             .clone()
             .into_iter()
             .map(|f| FileCopy::from_files(self.get_path_with_prefix_path(&f, &target_path), f))
-            .rev()
             .collect();
 
         let mut copier = Copier::from_folder_to_dir(&file_in_target_dir, self.total_size);
