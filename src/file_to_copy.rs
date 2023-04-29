@@ -47,8 +47,7 @@ impl<'a> FileToCopy<'a> {
         self.total_size += file_size;
         self.files.push(file_path);
     }
-    pub fn copy_to(&self, target_path: &str) {
-        let target_path = PathBuf::from(target_path);
+    pub fn copy_to(&self, target_path: &Path) {
         self.create_source_folder(&target_path);
         let file_in_target_dir = self
             .files
@@ -60,13 +59,13 @@ impl<'a> FileToCopy<'a> {
         let mut copier = Copier::from_folder_to_dir(&file_in_target_dir, self.total_size);
         copier.start();
     }
-    fn create_source_folder(&self, target_path: &PathBuf) {
+    fn create_source_folder(&self, target_path: &Path) {
         if self.path.is_dir() {
-            create_dir_all(self.get_path_with_prefix_path(&self.path.to_path_buf(), target_path))
+            create_dir_all(self.get_path_with_prefix_path(&self.path, target_path))
                 .expect("error creating the folder");
         }
     }
-    fn get_path_with_prefix_path(&self, path: &PathBuf, prefix_path: &PathBuf) -> PathBuf {
+    fn get_path_with_prefix_path(&self, path: &Path, prefix_path: &Path) -> PathBuf {
         prefix_path.join(self.get_file_path_from_folder(path))
     }
     fn get_file_path_from_folder(&self, file: &Path) -> PathBuf {
