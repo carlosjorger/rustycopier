@@ -13,10 +13,13 @@ fn main() {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
-    let mut folder = FileToCopy::from_path(&config.source_path);
-    folder.load_files_from_path();
     let start = Instant::now();
-    folder.copy_to(&config.target_path);
+    for source_path in config.source_paths {
+        let mut folder = FileToCopy::from_path(&source_path);
+        folder.load_files_from_path();
+        folder.copy_to(&config.target_path);
+    }
+
     let duration = start.elapsed();
     println!();
     println!("Time elapsed in expensive_function() is: {:?}", duration);
