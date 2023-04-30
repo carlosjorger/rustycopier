@@ -47,11 +47,11 @@ impl<'a> FileToCopy<'a> {
         self.total_size += file_size;
         self.files.push(file_path);
     }
-    pub fn copy_to(&self, target_path: &Path) {
+    pub fn copy_to(&mut self, target_path: &Path) {
         self.create_source_folder(&target_path);
         let file_in_target_dir = self
             .files
-            .clone()
+            .to_owned()
             .into_iter()
             .map(|f| FileCopy::from_files(self.get_path_with_prefix_path(&f, &target_path), f))
             .collect();

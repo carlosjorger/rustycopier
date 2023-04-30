@@ -44,7 +44,7 @@ fn copy_one_file_in_a_folder() {
     folder.load_files_from_path();
 
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-    folder.copy_to(destiny_temp_dir.path().to_str().unwrap());
+    folder.copy_to(destiny_temp_dir.path());
 
     let file_destiny_path: std::path::PathBuf = destiny_temp_dir
         .path()
@@ -94,7 +94,7 @@ fn copy_one_file() {
     folder.load_files_from_path();
 
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-    folder.copy_to(destiny_temp_dir.path().to_str().unwrap());
+    folder.copy_to(destiny_temp_dir.path());
 
     let file_destiny_path: std::path::PathBuf = destiny_temp_dir
         .path()
@@ -137,7 +137,7 @@ fn copy_5000_files() {
     folder.load_files_from_path();
 
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-    folder.copy_to(destiny_temp_dir.path().to_str().unwrap());
+    folder.copy_to(destiny_temp_dir.path());
 
     for file_number in 0..5000 {
         let file_destiny_path: std::path::PathBuf = destiny_temp_dir
