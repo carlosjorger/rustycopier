@@ -29,8 +29,7 @@ impl<'a> FileToCopy<'a> {
             return;
         }
         path_list.push_back(path_buf);
-        while !path_list.is_empty() {
-            let path_buf = path_list.pop_back().unwrap();
+        while let Some(path_buf) = path_list.pop_back() {
             let paths = fs::read_dir(path_buf).expect("invalid path");
             for path in paths {
                 let path = path.expect("invalid path").path();

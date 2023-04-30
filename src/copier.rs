@@ -40,14 +40,11 @@ impl Copier {
         let destiny_file = File::open(&file_to_copy.source_file).expect("error opening the file");
         let to_copy_file =
             File::create(&file_to_copy.target_file).expect("error creating the file");
-        self.progress_bar.set_new_file(
-            file_to_copy
-                .target_file
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap(),
-        );
+
+        if let Some(file_name) = file_to_copy.target_file.file_name() {
+            self.progress_bar.set_new_file(file_name.to_str().unwrap());
+        }
+
         self.copy_file(destiny_file, to_copy_file, 1024 * 500);
         Ok(())
     }
