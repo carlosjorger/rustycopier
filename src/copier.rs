@@ -17,23 +17,21 @@ impl FileCopy {
         }
     }
 }
-pub struct Copier<'a> {
-    files: &'a Vec<FileCopy>,
+pub struct Copier {
     paused: bool,
     progress_bar: progress_bar::ProgressBar,
 }
-impl<'a> Copier<'a> {
-    pub fn from_folder_to_dir(files: &'a Vec<FileCopy>, total_size: usize) -> Self {
+impl Copier {
+    pub fn from_folder_to_dir(total_size: usize) -> Self {
         Self {
-            files,
             paused: false,
             progress_bar: progress_bar::ProgressBar::from_total_size(total_size),
         }
     }
-    pub fn start(&mut self) {
-        for file in self.files {
+    pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
+        for file in files {
             if !self.paused {
-                self.create_file(file).expect("error copy the file");
+                self.create_file(&file).expect("error copy the file");
                 self.paused = false;
             }
         }

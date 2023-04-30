@@ -49,15 +49,16 @@ impl<'a> FileToCopy<'a> {
     }
     pub fn copy_to(&mut self, target_path: &Path) {
         self.create_source_folder(&target_path);
+
+        let mut copier = Copier::from_folder_to_dir(self.total_size);
+
         let file_in_target_dir = self
             .files
             .to_owned()
             .into_iter()
-            .map(|f| FileCopy::from_files(self.get_path_with_prefix_path(&f, &target_path), f))
-            .collect();
+            .map(|f| FileCopy::from_files(self.get_path_with_prefix_path(&f, &target_path), f));
 
-        let mut copier = Copier::from_folder_to_dir(&file_in_target_dir, self.total_size);
-        copier.start();
+        copier.start(file_in_target_dir);
     }
     fn create_source_folder(&self, target_path: &Path) {
         if self.path.is_dir() {
