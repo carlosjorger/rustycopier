@@ -3,14 +3,29 @@
 use std::{
     env::temp_dir,
     fs::{self, File},
-    io::Write,
-    path::PathBuf,
+    io::{self, Write},
+    path::{Path, PathBuf},
 };
 
 use tempdir::TempDir;
 
 use crate::file_to_copy::FileToCopy;
+fn create_file(file_path: &PathBuf, content: &[u8]) -> Result<(), io::Error> {
+    let mut file_source = File::create(file_path)?;
 
+    file_source.write_all(content)?;
+    Ok(())
+}
+fn copy_to_path(source: &str, target_path: &Path) {
+    let mut folder: FileToCopy = FileToCopy::from_path(source);
+    folder.load_files_from_path();
+
+    folder.copy_to(target_path);
+}
+fn get_msg_from_file(dir: &TempDir, file_path: &PathBuf) -> Vec<u8> {
+    let file_destiny_path: std::path::PathBuf = dir.path().join(file_path.file_name().unwrap());
+    fs::read(&file_destiny_path).unwrap()
+}
 #[test]
 fn copy_one_file_in_a_folder() {
     let source_dir = TempDir::new("my_source_dir").expect("unable create a dir");
@@ -36,15 +51,14 @@ fn copy_one_file_in_a_folder() {
                             Give Rust a chance, don't turn away
                             It may be strict, but it's worth the fight
                             For a language that's powerful and right.";
-    create_file(&file_source_path, msg);
+    create_file(&file_source_path, msg).expect("unable to create the file");
 
     let source_dir_str = source_dir.path().to_str().unwrap();
 
-    let mut folder: FileToCopy = FileToCopy::from_path(source_dir_str);
-    folder.load_files_from_path();
-
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-    folder.copy_to(destiny_temp_dir.path());
+
+    copy_to_path(source_dir_str, destiny_temp_dir.path());
+    // let new_msg = get_msg_from_file(&destiny_temp_dir, &file_source_path);
 
     let file_destiny_path: std::path::PathBuf = destiny_temp_dir
         .path()
@@ -54,13 +68,6 @@ fn copy_one_file_in_a_folder() {
     assert_eq!(msg.to_vec(), new_msg);
 }
 
-fn create_file(file_path: &PathBuf, content: &[u8]) {
-    let mut file_source = File::create(file_path).expect("unable create a new file");
-
-    file_source
-        .write_all(content)
-        .expect("unable to write in this temp file");
-}
 #[test]
 fn copy_one_file() {
     let source_dir = temp_dir();
@@ -86,20 +93,15 @@ fn copy_one_file() {
                             Give Rust a chance, don't turn away
                             It may be strict, but it's worth the fight
                             For a language that's powerful and right.";
-    create_file(&file_source_path, msg);
+    create_file(&file_source_path, msg).unwrap();
 
     let source_dir_str = file_source_path.to_str().unwrap();
-
-    let mut folder: FileToCopy = FileToCopy::from_path(source_dir_str);
-    folder.load_files_from_path();
-
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-    folder.copy_to(destiny_temp_dir.path());
 
-    let file_destiny_path: std::path::PathBuf = destiny_temp_dir
-        .path()
-        .join(file_source_path.file_name().unwrap());
-    let new_msg = fs::read(&file_destiny_path).unwrap();
+    copy_to_path(source_dir_str, destiny_temp_dir.path());
+
+    let new_msg = get_msg_from_file(&destiny_temp_dir, &file_source_path);
+
     assert_eq!(msg.to_vec(), new_msg);
 }
 #[test]
@@ -129,15 +131,12 @@ fn copy_5000_files() {
         let file_source_path: std::path::PathBuf =
             source_dir.path().join(format!("poetry{}.txt", file_number));
 
-        create_file(&file_source_path, msg);
+        create_file(&file_source_path, msg).unwrap();
     }
     let source_dir_str = source_dir.path().to_str().unwrap();
-
-    let mut folder: FileToCopy = FileToCopy::from_path(source_dir_str);
-    folder.load_files_from_path();
-
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-    folder.copy_to(destiny_temp_dir.path());
+
+    copy_to_path(source_dir_str, destiny_temp_dir.path());
 
     for file_number in 0..5000 {
         let file_destiny_path: std::path::PathBuf = destiny_temp_dir

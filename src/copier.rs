@@ -42,7 +42,9 @@ impl Copier {
             File::create(&file_to_copy.target_file).expect("error creating the file");
 
         if let Some(file_name) = file_to_copy.target_file.file_name() {
-            self.progress_bar.set_new_file(file_name.to_str().unwrap());
+            if let Some(file_name_str) = file_name.to_str() {
+                self.progress_bar.set_new_file(file_name_str);
+            }
         }
 
         self.copy_file(destiny_file, to_copy_file, 1024 * 500);
