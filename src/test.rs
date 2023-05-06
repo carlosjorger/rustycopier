@@ -104,7 +104,8 @@ fn copy_one_file() {
 }
 #[test]
 #[ignore]
-fn copy_5000_files() {
+fn copy_10000_files() {
+    const NUMBER_OF_FILES: usize = 10000;
     let source_dir = TempDir::new("my_source_dir").expect("unable create a dir");
     let msg = b"In the world of coding, a language stands
                             Rust, they call it, with its own demands
@@ -125,7 +126,7 @@ fn copy_5000_files() {
                             Give Rust a chance, don't turn away
                             It may be strict, but it's worth the fight
                             For a language that's powerful and right.";
-    for file_number in 0..5000 {
+    for file_number in 0..NUMBER_OF_FILES {
         let file_source_path: std::path::PathBuf =
             source_dir.path().join(format!("poetry{}.txt", file_number));
 
@@ -136,7 +137,7 @@ fn copy_5000_files() {
 
     copy_to_path(source_dir_str, destiny_temp_dir.path());
 
-    for file_number in 0..5000 {
+    for file_number in 0..NUMBER_OF_FILES {
         let file_destiny_path: std::path::PathBuf = destiny_temp_dir
             .path()
             .join(source_dir.path().file_name().unwrap())
