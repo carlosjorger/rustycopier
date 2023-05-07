@@ -25,23 +25,31 @@ impl Copier {
     pub fn from_folder_to_dir(total_size: usize) -> Self {
         Self {
             paused: false,
-            progress_bar: progress_bar::ProgressBar::from_total_size(total_size),
+            progress_bar: progress_bar::ProgressBar::new(total_size),
         }
     }
     pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
-        for file in files {
+        for FileCopy {
+            source_file,
+            target_file,
+        } in files
+        {
             if !self.paused {
-                self.create_file(&file).expect("error copy the file");
+                self.create_file(&source_file, &target_file)
+                    .expect("error copy the file");
                 self.paused = false;
             }
         }
     }
-    fn create_file(&mut self, file_to_copy: &FileCopy) -> Result<(), io::Error> {
-        let destiny_file = File::open(&file_to_copy.source_file).expect("error opening the file");
-        let to_copy_file =
-            File::create(&file_to_copy.target_file).expect("error creating the file");
+    fn create_file(
+        &mut self,
+        source_file: &PathBuf,
+        target_file: &PathBuf,
+    ) -> Result<(), io::Error> {
+        let destiny_file = File::open(source_file).expect("error opening the file");
+        let to_copy_file = File::create(target_file).expect("error creating the file");
 
-        if let Some(file_name) = file_to_copy.target_file.file_name() {
+        if let Some(file_name) = target_file.file_name() {
             if let Some(file_name_str) = file_name.to_str() {
                 self.progress_bar.set_new_file(file_name_str);
             }
@@ -56,13 +64,13 @@ impl Copier {
 
         loop {
             let buffer = reader.fill_buf().expect("error in the buffer");
-            let lenght = buffer.len();
-            stream.write_all(buffer).expect("error to write");
-            reader.consume(lenght);
-            self.progress_bar.consume(lenght);
-            if lenght == 0 {
+            let buffer_lenght = buffer.len();
+            if buffer_lenght == 0 {
                 break;
             }
+            stream.write_all(buffer).expect("error to write");
+            reader.consume(buffer_lenght);
+            self.progress_bar.consume(buffer_lenght);
         }
     }
 }
