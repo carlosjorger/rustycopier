@@ -54,7 +54,7 @@ fn create_file(
 
     if let Some(file_name) = target_file.file_name() {
         if let Some(file_name_str) = file_name.to_str() {
-            progress_bar.set_new_file(file_name_str);
+            // progress_bar.set_new_file(file_name_str);
         }
     }
 
@@ -78,6 +78,6 @@ fn copy_file(
         }
         stream.write_all(buffer).expect("error to write");
         reader.consume(buffer_lenght);
-        progress_bar.consume(buffer_lenght);
+        // progress_bar.consume(buffer_lenght);
     }
 }
