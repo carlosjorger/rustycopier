@@ -28,13 +28,14 @@ impl CopierPool {
             sender: Some(sender),
         }
     }
-    pub fn execute<F>(&self, f: F, file_size: u64)
+    pub fn execute<F>(&self, f: F)
     where
         F: FnOnce(&mut ProgressBar) + Send + 'static,
     {
         let job = Box::new(f);
-
-        self.sender.as_ref().unwrap().send(job).unwrap();
+        if let Some(sender) = self.sender.as_ref() {
+            sender.send(job).unwrap();
+        }
     }
 }
 impl Drop for CopierPool {
@@ -56,13 +57,14 @@ struct Worker {
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
+        let mut progress_bar = ProgressBar::new(id as u16);
+
         let thread = thread::spawn(move || loop {
             let message = receiver.lock().unwrap().recv();
 
             match message {
                 Ok(job) => {
                     println!("Worker {id} got a job; executing.");
-                    let mut progress_bar = ProgressBar::new(id.try_into().unwrap());
 
                     job(&mut progress_bar)
                 }

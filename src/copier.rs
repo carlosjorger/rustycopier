@@ -25,20 +25,16 @@ impl Copier {
         Self { paused: false }
     }
     pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
-        let pool = CopierPool::new(4);
+        let pool = CopierPool::new(2);
         for FileCopy {
             source_file,
             target_file,
         } in files
         {
-            let file_size = source_file.metadata().unwrap().len();
             if !self.paused {
-                pool.execute(
-                    move |bar: &mut progress_bar::ProgressBar| {
-                        create_file(bar, &source_file, &target_file).expect("error copy the file");
-                    },
-                    file_size,
-                );
+                pool.execute(move |bar: &mut progress_bar::ProgressBar| {
+                    create_file(bar, &source_file, &target_file).expect("error copy the file");
+                });
                 self.paused = false;
             }
         }
@@ -51,12 +47,7 @@ fn create_file(
 ) -> Result<(), io::Error> {
     let destiny_file = File::open(source_file).expect("error opening the file");
     let to_copy_file = File::create(target_file).expect("error creating the file");
-
-    if let Some(file_name) = target_file.file_name() {
-        if let Some(file_name_str) = file_name.to_str() {
-            // progress_bar.set_new_file(file_name_str);
-        }
-    }
+    progress_bar.set_new_file(source_file);
 
     copy_file(progress_bar, destiny_file, to_copy_file, 1024 * 500);
     Ok(())
@@ -78,6 +69,6 @@ fn copy_file(
         }
         stream.write_all(buffer).expect("error to write");
         reader.consume(buffer_lenght);
-        // progress_bar.consume(buffer_lenght);
+        progress_bar.consume(buffer_lenght);
     }
 }

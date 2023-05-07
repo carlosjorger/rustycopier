@@ -1,5 +1,8 @@
 use crossterm::{cursor, terminal, QueueableCommand};
-use std::io::{stdout, Stdout, Write};
+use std::{
+    io::{stdout, Stdout, Write},
+    path::PathBuf,
+};
 
 struct ProgressBarDrawer {
     stdout: Stdout,
@@ -78,8 +81,17 @@ impl ProgressBar {
             finished: false,
         }
     }
-    pub fn set_new_file(&mut self, file_name: &str) {
-        self.progress_bar.print_new_file(file_name);
+    pub fn set_new_file(&mut self, file_path: &PathBuf) {
+        self.add_file_size(file_path);
+        if let Some(file_name) = file_path.file_name() {
+            if let Some(file_name_str) = file_name.to_str() {
+                self.progress_bar.print_new_file(file_name_str);
+            }
+        }
+    }
+    fn add_file_size(&mut self, file_path: &PathBuf) {
+        let file_size = file_path.metadata().unwrap().len() as usize;
+        self.total_size += file_size;
     }
     pub fn consume(&mut self, lenght: usize) {
         self.consumed_size += lenght;
