@@ -68,17 +68,16 @@ pub struct ProgressBar {
     finished: bool,
 }
 impl ProgressBar {
-    pub fn new(total_size: usize) -> Self {
+    pub fn new(position: u16) -> Self {
         const NUMBER_OF_BARS: usize = 25;
         Self {
-            total_size,
+            total_size: 0,
             consumed_size: 0,
-            progress_bar: ProgressBarDrawer::progress_bar(NUMBER_OF_BARS, 2),
+            progress_bar: ProgressBarDrawer::progress_bar(NUMBER_OF_BARS, position * 3),
             total_of_bars: NUMBER_OF_BARS,
             finished: false,
         }
     }
-
     pub fn set_new_file(&mut self, file_name: &str) {
         self.progress_bar.print_new_file(file_name);
     }

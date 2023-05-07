@@ -1,6 +1,7 @@
 // mod progress_bar;
 mod config;
 mod copier;
+mod copier_pool;
 mod file_to_copy;
 mod progress_bar;
 #[cfg(test)]

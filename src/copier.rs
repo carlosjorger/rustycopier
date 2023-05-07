@@ -1,4 +1,4 @@
-use crate::progress_bar;
+use crate::{copier_pool::CopierPool, progress_bar};
 use std::{
     fs::File,
     io::{self, BufRead, BufReader, BufWriter, Write},
@@ -19,58 +19,65 @@ impl FileCopy {
 }
 pub struct Copier {
     paused: bool,
-    progress_bar: progress_bar::ProgressBar,
 }
 impl Copier {
-    pub fn from_folder_to_dir(total_size: usize) -> Self {
-        Self {
-            paused: false,
-            progress_bar: progress_bar::ProgressBar::new(total_size),
-        }
+    pub fn from_folder_to_dir() -> Self {
+        Self { paused: false }
     }
     pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
+        let pool = CopierPool::new(4);
         for FileCopy {
             source_file,
             target_file,
         } in files
         {
+            let file_size = source_file.metadata().unwrap().len();
             if !self.paused {
-                self.create_file(&source_file, &target_file)
-                    .expect("error copy the file");
+                pool.execute(
+                    move |bar: &mut progress_bar::ProgressBar| {
+                        create_file(bar, &source_file, &target_file).expect("error copy the file");
+                    },
+                    file_size,
+                );
                 self.paused = false;
             }
         }
     }
-    fn create_file(
-        &mut self,
-        source_file: &PathBuf,
-        target_file: &PathBuf,
-    ) -> Result<(), io::Error> {
-        let destiny_file = File::open(source_file).expect("error opening the file");
-        let to_copy_file = File::create(target_file).expect("error creating the file");
+}
+fn create_file(
+    progress_bar: &mut progress_bar::ProgressBar,
+    source_file: &PathBuf,
+    target_file: &PathBuf,
+) -> Result<(), io::Error> {
+    let destiny_file = File::open(source_file).expect("error opening the file");
+    let to_copy_file = File::create(target_file).expect("error creating the file");
 
-        if let Some(file_name) = target_file.file_name() {
-            if let Some(file_name_str) = file_name.to_str() {
-                self.progress_bar.set_new_file(file_name_str);
-            }
+    if let Some(file_name) = target_file.file_name() {
+        if let Some(file_name_str) = file_name.to_str() {
+            progress_bar.set_new_file(file_name_str);
         }
-
-        self.copy_file(destiny_file, to_copy_file, 1024 * 500);
-        Ok(())
     }
-    fn copy_file(&mut self, source_file: File, destiny_file: File, capacity: usize) {
-        let mut stream = BufWriter::with_capacity(capacity, &destiny_file);
-        let mut reader = BufReader::with_capacity(capacity, &source_file);
 
-        loop {
-            let buffer = reader.fill_buf().expect("error in the buffer");
-            let buffer_lenght = buffer.len();
-            if buffer_lenght == 0 {
-                break;
-            }
-            stream.write_all(buffer).expect("error to write");
-            reader.consume(buffer_lenght);
-            self.progress_bar.consume(buffer_lenght);
+    copy_file(progress_bar, destiny_file, to_copy_file, 1024 * 500);
+    Ok(())
+}
+fn copy_file(
+    progress_bar: &mut progress_bar::ProgressBar,
+    source_file: File,
+    destiny_file: File,
+    capacity: usize,
+) {
+    let mut stream = BufWriter::with_capacity(capacity, &destiny_file);
+    let mut reader = BufReader::with_capacity(capacity, &source_file);
+
+    loop {
+        let buffer = reader.fill_buf().expect("error in the buffer");
+        let buffer_lenght = buffer.len();
+        if buffer_lenght == 0 {
+            break;
         }
+        stream.write_all(buffer).expect("error to write");
+        reader.consume(buffer_lenght);
+        progress_bar.consume(buffer_lenght);
     }
 }
