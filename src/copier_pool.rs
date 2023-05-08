@@ -1,4 +1,5 @@
 use std::{
+    collections::LinkedList,
     sync::{
         mpsc::{self, Receiver},
         Arc, Mutex,
@@ -6,13 +7,17 @@ use std::{
     thread,
 };
 
+use crossterm::queue;
+
 use crate::progress_bar::ProgressBar;
 
 pub struct CopierPool {
     workers: Vec<Worker>,
-    sender: Option<mpsc::Sender<Job>>,
+    sender: Option<mpsc::Sender<WorkerJob>>,
 }
-type Job = Box<dyn FnOnce(&mut ProgressBar) + Send + 'static>;
+type Job = (Box<dyn FnOnce(&mut ProgressBar) + Send + 'static>, usize);
+
+type WorkerJob = Box<dyn FnOnce(&mut ProgressBar) + Send + 'static>;
 impl CopierPool {
     pub fn new(size: usize) -> Self {
         assert!(size > 0);
@@ -42,8 +47,6 @@ impl Drop for CopierPool {
     fn drop(&mut self) {
         drop(self.sender.take());
         for worker in &mut self.workers {
-            println!("Shutting down worker {}", worker.id);
-
             if let Some(thread) = worker.thread.take() {
                 thread.join().unwrap();
             }
@@ -56,20 +59,14 @@ struct Worker {
 }
 
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
+    fn new(id: usize, receiver: Arc<Mutex<Receiver<WorkerJob>>>) -> Worker {
         let mut progress_bar = ProgressBar::new(id as u16);
-
+        // let mut queue: LinkedList<Box<Job>> = LinkedList::new();
         let thread = thread::spawn(move || loop {
             let message = receiver.lock().unwrap().recv();
-
             match message {
-                Ok(job) => {
-                    println!("Worker {id} got a job; executing.");
-
-                    job(&mut progress_bar)
-                }
+                Ok(job) => job(&mut progress_bar),
                 Err(_) => {
-                    println!("Worker {id} disconnected; shutting down.");
                     break;
                 }
             }

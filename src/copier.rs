@@ -25,7 +25,7 @@ impl Copier {
         Self { paused: false }
     }
     pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
-        let pool = CopierPool::new(2);
+        let pool = CopierPool::new(1);
         for FileCopy {
             source_file,
             target_file,
