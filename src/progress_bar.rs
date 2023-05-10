@@ -89,6 +89,9 @@ impl ProgressBar {
             }
         }
     }
+    pub fn add_size(&mut self, size: usize) {
+        self.total_size += size;
+    }
     fn add_file_size(&mut self, file_path: &PathBuf) {
         let file_size = file_path.metadata().unwrap().len() as usize;
         self.total_size += file_size;

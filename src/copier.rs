@@ -32,9 +32,13 @@ impl Copier {
         } in files
         {
             if !self.paused {
-                pool.execute(move |bar: &mut progress_bar::ProgressBar| {
-                    create_file(bar, &source_file, &target_file).expect("error copy the file");
-                });
+                let file_size = source_file.metadata().unwrap().len() as usize;
+                pool.execute(
+                    move |bar: &mut progress_bar::ProgressBar| {
+                        create_file(bar, &source_file, &target_file).expect("error copy the file");
+                    },
+                    file_size,
+                );
                 self.paused = false;
             }
         }
