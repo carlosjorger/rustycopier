@@ -7,8 +7,6 @@ use std::{
     thread,
 };
 
-use crossterm::queue;
-
 use crate::progress_bar::ProgressBar;
 
 pub struct CopierPool {
@@ -53,7 +51,6 @@ impl Drop for CopierPool {
     }
 }
 struct Worker {
-    id: usize,
     load_jobs_thread: Option<thread::JoinHandle<()>>,
 }
 
@@ -66,7 +63,6 @@ impl Worker {
             match message {
                 Ok((job, file_size)) => {
                     progress_bar.add_size(file_size);
-                    // job(&mut progress_bar);
                     job_queue.push_back(job);
                 }
                 Err(_) => {
@@ -75,11 +71,7 @@ impl Worker {
                 }
             }
         });
-        // thread::spawn(move || loop {
-        //     while let job = job_queue.pop_back() {}
-        // });
         Worker {
-            id,
             load_jobs_thread: Some(thread),
         }
     }
