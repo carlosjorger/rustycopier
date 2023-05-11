@@ -24,45 +24,39 @@ impl ProgressBarDrawer {
         }
     }
     fn draw_a_bar(&mut self, number_of_bars: usize) {
-        self.stdout
-            .queue(cursor::MoveToNextLine(self.stdout_position))
-            .unwrap();
+        self.move_to_line(self.stdout_position);
         print!(
             "\r Copying: [{}{}] {}%",
             &self.progress_window[0..number_of_bars],
             &self.rest_window[0..(self.total_number_of_bars - number_of_bars)],
             self.percentage_of_number_of_bars(number_of_bars),
         );
-        self.stdout.queue(cursor::MoveToNextLine(2)).unwrap();
+        self.move_to_line(self.stdout_position + 1);
         print!("------------------------------------------");
-        self.stdout
-            .queue(cursor::MoveToPreviousLine(2 + self.stdout_position))
-            .unwrap();
-        if number_of_bars < self.total_number_of_bars {
-            self.stdout
-                .queue(cursor::MoveToPreviousLine(2 + self.stdout_position))
-                .unwrap();
-        }
-
         self.stdout.flush().unwrap();
     }
     fn percentage_of_number_of_bars(&self, number_of_bars: usize) -> f64 {
         (number_of_bars as f64 * (100.0 / (self.total_number_of_bars as f64))).trunc()
     }
     fn print_new_file(&mut self, file_name: &str) {
-        self.stdout
-            .queue(cursor::MoveToNextLine(1 + self.stdout_position))
-            .unwrap();
+        self.move_to_line(self.stdout_position);
         self.clean_from_cursor_down();
+        self.move_to_line(2 + self.stdout_position);
         print!("{file_name}");
-        self.stdout
-            .queue(cursor::MoveToPreviousLine(1 + self.stdout_position))
-            .unwrap();
         self.stdout.flush().unwrap();
     }
     fn clean_from_cursor_down(&mut self) {
         self.stdout
-            .queue(terminal::Clear(terminal::ClearType::FromCursorDown))
+            .queue(cursor::MoveToRow(self.stdout_position + 2))
+            .unwrap()
+            .queue(terminal::Clear(terminal::ClearType::CurrentLine))
+            .unwrap();
+    }
+    fn move_to_line(&mut self, stdout_position: u16) {
+        self.stdout
+            .queue(cursor::MoveToRow(stdout_position))
+            .unwrap()
+            .queue(cursor::MoveToColumn(0))
             .unwrap();
     }
 }
