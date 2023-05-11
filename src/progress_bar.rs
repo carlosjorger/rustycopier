@@ -1,4 +1,7 @@
-use crossterm::{cursor, terminal, QueueableCommand};
+use crossterm::{
+    cursor::{self, position},
+    terminal, QueueableCommand,
+};
 use std::{
     io::{stdout, Stdout, Write},
     path::PathBuf,
@@ -40,12 +43,13 @@ impl ProgressBarDrawer {
     }
     fn print_new_file(&mut self, file_name: &str) {
         self.move_to_line(self.stdout_position);
-        self.clean_from_cursor_down();
+        self.clean_file_line();
         self.move_to_line(2 + self.stdout_position);
         print!("{file_name}");
         self.stdout.flush().unwrap();
     }
-    fn clean_from_cursor_down(&mut self) {
+
+    fn clean_file_line(&mut self) {
         self.stdout
             .queue(cursor::MoveToRow(self.stdout_position + 2))
             .unwrap()
@@ -68,16 +72,21 @@ pub struct ProgressBar {
     finished: bool,
 }
 impl ProgressBar {
-    pub fn new(position: u16) -> Self {
+    pub fn new(progress_bar_position: u16) -> Self {
         const NUMBER_OF_BARS: usize = 25;
+        let (_, stdout_position) = position().unwrap();
         Self {
             total_size: 0,
             consumed_size: 0,
-            progress_bar: ProgressBarDrawer::progress_bar(NUMBER_OF_BARS, position * 4 + 1),
+            progress_bar: ProgressBarDrawer::progress_bar(
+                NUMBER_OF_BARS,
+                stdout_position + progress_bar_position * 3 + 1,
+            ),
             total_of_bars: NUMBER_OF_BARS,
             finished: false,
         }
     }
+
     pub fn set_new_file(&mut self, file_path: &PathBuf) {
         if let Some(file_name) = file_path.file_name() {
             if let Some(file_name_str) = file_name.to_str() {
