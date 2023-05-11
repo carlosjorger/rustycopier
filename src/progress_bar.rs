@@ -31,10 +31,13 @@ impl ProgressBarDrawer {
             "\r Copying: [{}{}] {}%",
             &self.progress_window[0..number_of_bars],
             &self.rest_window[0..(self.total_number_of_bars - number_of_bars)],
-            self.percentage_of_number_of_bars(number_of_bars)
+            self.percentage_of_number_of_bars(number_of_bars),
         );
         self.stdout.queue(cursor::MoveToNextLine(2)).unwrap();
         print!("------------------------------------------");
+        self.stdout
+            .queue(cursor::MoveToPreviousLine(2 + self.stdout_position))
+            .unwrap();
         if number_of_bars < self.total_number_of_bars {
             self.stdout
                 .queue(cursor::MoveToPreviousLine(2 + self.stdout_position))
@@ -76,7 +79,7 @@ impl ProgressBar {
         Self {
             total_size: 0,
             consumed_size: 0,
-            progress_bar: ProgressBarDrawer::progress_bar(NUMBER_OF_BARS, position * 3),
+            progress_bar: ProgressBarDrawer::progress_bar(NUMBER_OF_BARS, position * 4 + 1),
             total_of_bars: NUMBER_OF_BARS,
             finished: false,
         }
