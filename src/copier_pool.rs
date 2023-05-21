@@ -22,7 +22,7 @@ impl CopierPool {
         let mut workers = Vec::with_capacity(size);
         let receiver = Arc::new(Mutex::new(receiver));
         for id in 0..size {
-            workers.push(Worker::new(id, Arc::clone(&receiver)));
+            workers.push(Worker::new(id, size, Arc::clone(&receiver)));
         }
 
         CopierPool {
@@ -55,8 +55,8 @@ struct Worker {
 }
 
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
-        let mut progress_bar = ProgressBar::new(id as u16);
+    fn new(id: usize, total_of_workers: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
+        let mut progress_bar = ProgressBar::new(id as u16, total_of_workers as u16);
         let mut job_queue: LinkedList<WorkerJob> = LinkedList::new();
         let thread = thread::spawn(move || loop {
             let message = receiver.lock().unwrap().recv();

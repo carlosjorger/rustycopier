@@ -13,9 +13,14 @@ struct ProgressBarDrawer {
     progress_window: String,
     rest_window: String,
     stdout_position: u16,
+    final_stdout_position: u16,
 }
 impl ProgressBarDrawer {
-    fn progress_bar(total_number_of_bars: usize, stdout_position: u16) -> Self {
+    fn progress_bar(
+        total_number_of_bars: usize,
+        stdout_position: u16,
+        final_stdout_position: u16,
+    ) -> Self {
         let progress_window = "=".repeat(total_number_of_bars);
         let rest_window = "-".repeat(total_number_of_bars);
         Self {
@@ -24,10 +29,12 @@ impl ProgressBarDrawer {
             progress_window,
             rest_window,
             stdout_position,
+            final_stdout_position,
         }
     }
     fn draw_a_bar(&mut self, number_of_bars: usize) {
         self.move_to_line(self.stdout_position);
+        self.clean_line(self.stdout_position);
         print!(
             "\r Copying: [{}{}] {}%",
             &self.progress_window[0..number_of_bars],
@@ -35,7 +42,9 @@ impl ProgressBarDrawer {
             self.percentage_of_number_of_bars(number_of_bars),
         );
         self.move_to_line(self.stdout_position + 1);
+        self.clean_line(self.stdout_position + 1);
         print!("------------------------------------------");
+        self.move_to_line(self.final_stdout_position);
         self.stdout.flush().unwrap();
     }
     fn percentage_of_number_of_bars(&self, number_of_bars: usize) -> f64 {
@@ -43,15 +52,15 @@ impl ProgressBarDrawer {
     }
     fn print_new_file(&mut self, file_name: &str) {
         self.move_to_line(self.stdout_position);
-        self.clean_file_line();
-        self.move_to_line(2 + self.stdout_position);
+        self.clean_line(self.stdout_position + 2);
+        self.move_to_line(self.stdout_position + 2);
         print!("{file_name}");
         self.stdout.flush().unwrap();
     }
 
-    fn clean_file_line(&mut self) {
+    fn clean_line(&mut self, position: u16) {
         self.stdout
-            .queue(cursor::MoveToRow(self.stdout_position + 2))
+            .queue(cursor::MoveToRow(position))
             .unwrap()
             .queue(terminal::Clear(terminal::ClearType::CurrentLine))
             .unwrap();
@@ -72,7 +81,7 @@ pub struct ProgressBar {
     finished: bool,
 }
 impl ProgressBar {
-    pub fn new(progress_bar_position: u16) -> Self {
+    pub fn new(progress_bar_position: u16, total_of_progress_bar: u16) -> Self {
         const NUMBER_OF_BARS: usize = 25;
         let (_, stdout_position) = position().unwrap();
         Self {
@@ -81,6 +90,7 @@ impl ProgressBar {
             progress_bar: ProgressBarDrawer::progress_bar(
                 NUMBER_OF_BARS,
                 stdout_position + progress_bar_position * 3 + 1,
+                stdout_position + total_of_progress_bar * 3 + 1,
             ),
             total_of_bars: NUMBER_OF_BARS,
             finished: false,
