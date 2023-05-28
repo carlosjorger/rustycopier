@@ -4,7 +4,7 @@ use crossterm::{
 };
 use std::{
     io::{stdout, Stdout, Write},
-    path::PathBuf,
+    path::Path,
 };
 
 struct ProgressBarDrawer {
@@ -97,7 +97,7 @@ impl ProgressBar {
         }
     }
 
-    pub fn set_new_file(&mut self, file_path: &PathBuf) {
+    pub fn set_new_file(&mut self, file_path: &Path) {
         if let Some(file_name) = file_path.file_name() {
             if let Some(file_name_str) = file_name.to_str() {
                 self.progress_bar.print_new_file(file_name_str);

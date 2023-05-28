@@ -47,20 +47,21 @@ impl<'a> FileToCopy<'a> {
         self.files.push(file_path);
     }
     pub fn copy_to(&mut self, target_path: &Path) {
-        self.create_source_folder(&target_path);
+        self.create_source_folder(target_path);
 
-        let file_in_target_dir = self
-            .files
-            .to_owned()
-            .into_iter()
-            .map(|f| FileCopy::from_files(self.get_path_with_prefix_path(&f, &target_path), f));
+        let file_in_target_dir = self.files.iter().map(|f| {
+            FileCopy::from_files(
+                self.get_path_with_prefix_path(f, target_path),
+                f.to_path_buf(),
+            )
+        });
 
         let mut copier = Copier::from_folder_to_dir();
         copier.start(file_in_target_dir);
     }
     fn create_source_folder(&self, target_path: &Path) {
         if self.path.is_dir() {
-            create_dir_all(self.get_path_with_prefix_path(&self.path, target_path))
+            create_dir_all(self.get_path_with_prefix_path(self.path, target_path))
                 .expect("error creating the folder");
         }
     }
