@@ -5,6 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use tempdir::TempDir;
 
 use crate::file_to_copy::FileToCopy;
@@ -137,14 +138,17 @@ fn copy_10000_files() {
 
     copy_to_path(source_dir_str, destiny_temp_dir.path());
 
-    for file_number in 0..NUMBER_OF_FILES {
-        let file_destiny_path: std::path::PathBuf = destiny_temp_dir
-            .path()
-            .join(source_dir.path().file_name().unwrap())
-            .join(format!("poetry{}.txt", file_number));
-        let new_msg = fs::read(&file_destiny_path).unwrap();
-        assert_eq!(msg.to_vec(), new_msg);
-    }
+    let msg_vector = msg.to_vec();
+    (0..NUMBER_OF_FILES)
+        .into_par_iter()
+        .for_each(|file_number| {
+            let file_destiny_path: std::path::PathBuf = destiny_temp_dir
+                .path()
+                .join(source_dir.path().file_name().unwrap())
+                .join(format!("poetry{}.txt", file_number));
+            let new_msg = fs::read(file_destiny_path).unwrap();
+            assert_eq!(msg_vector, new_msg);
+        });
 }
 
 #[test]
@@ -181,13 +185,15 @@ fn copy_5000_files() {
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
 
     copy_to_path(source_dir_str, destiny_temp_dir.path());
-
-    for file_number in 0..NUMBER_OF_FILES {
-        let file_destiny_path: std::path::PathBuf = destiny_temp_dir
-            .path()
-            .join(source_dir.path().file_name().unwrap())
-            .join(format!("poetry{}.txt", file_number));
-        let new_msg = fs::read(&file_destiny_path).unwrap();
-        assert_eq!(msg.to_vec(), new_msg);
-    }
+    let msg_vector = msg.to_vec();
+    (0..NUMBER_OF_FILES)
+        .into_par_iter()
+        .for_each(|file_number| {
+            let file_destiny_path: std::path::PathBuf = destiny_temp_dir
+                .path()
+                .join(source_dir.path().file_name().unwrap())
+                .join(format!("poetry{}.txt", file_number));
+            let new_msg = fs::read(file_destiny_path).unwrap();
+            assert_eq!(msg_vector, new_msg);
+        });
 }
