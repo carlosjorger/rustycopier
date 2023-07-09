@@ -1,5 +1,6 @@
 use std::{
     collections::LinkedList,
+    io::stdout,
     sync::{
         mpsc::{self, Receiver},
         Arc, Mutex,
@@ -56,8 +57,10 @@ struct Worker {
 
 impl Worker {
     fn new(id: usize, total_of_workers: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
+        // TODO: pass stout to PogressBar for lock his use when is writted the logs
+        let sharedStout = Arc::new(Mutex::new(stdout()));
         let mut progress_bar = ProgressBar::new(id as u16, total_of_workers as u16);
-        let mut job_queue: LinkedList<WorkerJob> = LinkedList::new();
+        let mut job_queue = LinkedList::new();
         let thread = thread::spawn(move || loop {
             let message = receiver.lock().unwrap().recv();
             match message {
