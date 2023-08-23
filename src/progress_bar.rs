@@ -3,12 +3,13 @@ use crossterm::{
     terminal, QueueableCommand,
 };
 use std::{
-    io::{stdout, Stdout, Write},
+    io::{Stdout, Write},
     path::Path,
+    sync::{Arc, Mutex, MutexGuard},
 };
 
 struct ProgressBarDrawer {
-    stdout: Stdout,
+    stdout: Arc<Mutex<Stdout>>,
     total_number_of_bars: usize,
     progress_window: String,
     rest_window: String,
@@ -20,11 +21,12 @@ impl ProgressBarDrawer {
         total_number_of_bars: usize,
         stdout_position: u16,
         final_stdout_position: u16,
+        stout_mutex: Arc<Mutex<Stdout>>,
     ) -> Self {
         let progress_window = "=".repeat(total_number_of_bars);
         let rest_window = "-".repeat(total_number_of_bars);
         Self {
-            stdout: stdout(),
+            stdout: stout_mutex,
             total_number_of_bars,
             progress_window,
             rest_window,
@@ -33,40 +35,42 @@ impl ProgressBarDrawer {
         }
     }
     fn draw_a_bar(&mut self, number_of_bars: usize) {
-        self.move_to_line(self.stdout_position);
-        self.clean_line(self.stdout_position);
+        let mut stdout_result = self.stdout.lock().unwrap();
+        self.move_to_line(self.stdout_position, &mut stdout_result);
+        self.clean_line(self.stdout_position, &mut stdout_result);
         print!(
             "\r Copying: [{}{}] {}%",
             &self.progress_window[0..number_of_bars],
             &self.rest_window[0..(self.total_number_of_bars - number_of_bars)],
             self.percentage_of_number_of_bars(number_of_bars),
         );
-        self.move_to_line(self.stdout_position + 1);
-        self.clean_line(self.stdout_position + 1);
+        self.move_to_line(self.stdout_position + 1, &mut stdout_result);
+        self.clean_line(self.stdout_position + 1, &mut stdout_result);
         print!("------------------------------------------");
-        self.move_to_line(self.final_stdout_position);
-        self.stdout.flush().unwrap();
+        self.move_to_line(self.final_stdout_position, &mut stdout_result);
+        stdout_result.flush().unwrap();
     }
     fn percentage_of_number_of_bars(&self, number_of_bars: usize) -> f64 {
         (number_of_bars as f64 * (100.0 / (self.total_number_of_bars as f64))).trunc()
     }
-    fn print_new_file(&mut self, file_name: &str) {
-        self.move_to_line(self.stdout_position);
-        self.clean_line(self.stdout_position + 2);
-        self.move_to_line(self.stdout_position + 2);
+    fn print_new_file(&self, file_name: &str) {
+        let mut stdout_result = self.stdout.lock().unwrap();
+        self.move_to_line(self.stdout_position, &mut stdout_result);
+        self.clean_line(self.stdout_position + 2, &mut stdout_result);
+        self.move_to_line(self.stdout_position + 2, &mut stdout_result);
         print!("{file_name}");
-        self.stdout.flush().unwrap();
+        stdout_result.flush().unwrap();
     }
 
-    fn clean_line(&mut self, position: u16) {
-        self.stdout
+    fn clean_line(&self, position: u16, stdout: &mut MutexGuard<'_, Stdout>) {
+        stdout
             .queue(cursor::MoveToRow(position))
             .unwrap()
             .queue(terminal::Clear(terminal::ClearType::CurrentLine))
             .unwrap();
     }
-    fn move_to_line(&mut self, stdout_position: u16) {
-        self.stdout
+    fn move_to_line(&self, stdout_position: u16, stdout: &mut MutexGuard<'_, Stdout>) {
+        stdout
             .queue(cursor::MoveToRow(stdout_position))
             .unwrap()
             .queue(cursor::MoveToColumn(0))
@@ -81,7 +85,11 @@ pub struct ProgressBar {
     finished: bool,
 }
 impl ProgressBar {
-    pub fn new(progress_bar_position: u16, total_of_progress_bar: u16) -> Self {
+    pub fn new(
+        progress_bar_position: u16,
+        total_of_progress_bar: u16,
+        stout_mutex: Arc<Mutex<Stdout>>,
+    ) -> Self {
         const NUMBER_OF_BARS: usize = 25;
         let (_, stdout_position) = position().unwrap();
         Self {
@@ -91,6 +99,7 @@ impl ProgressBar {
                 NUMBER_OF_BARS,
                 stdout_position + progress_bar_position * 3 + 1,
                 stdout_position + total_of_progress_bar * 3 + 1,
+                stout_mutex,
             ),
             total_of_bars: NUMBER_OF_BARS,
             finished: false,
