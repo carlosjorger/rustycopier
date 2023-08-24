@@ -1,6 +1,6 @@
 use std::{
     collections::LinkedList,
-    io::stdout,
+    io::{stdout, Stdout},
     sync::{
         mpsc::{self, Receiver},
         Arc, Mutex,
@@ -22,8 +22,14 @@ impl CopierPool {
         let (sender, receiver) = mpsc::channel();
         let mut workers = Vec::with_capacity(size);
         let receiver = Arc::new(Mutex::new(receiver));
+        let shared_stdout = Arc::new(Mutex::new(stdout()));
         for id in 0..size {
-            workers.push(Worker::new(id, size, Arc::clone(&receiver)));
+            workers.push(Worker::new(
+                id,
+                size,
+                Arc::clone(&receiver),
+                Arc::clone(&shared_stdout),
+            ));
         }
 
         CopierPool {
@@ -56,9 +62,12 @@ struct Worker {
 }
 
 impl Worker {
-    fn new(id: usize, total_of_workers: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
-        // TODO: pass stout to PogressBar for lock his use when is writted the logs
-        let shared_stdout = Arc::new(Mutex::new(stdout()));
+    fn new(
+        id: usize,
+        total_of_workers: usize,
+        receiver: Arc<Mutex<Receiver<Job>>>,
+        shared_stdout: Arc<Mutex<Stdout>>,
+    ) -> Worker {
         let mut progress_bar = ProgressBar::new(id as u16, total_of_workers as u16, shared_stdout);
         let mut job_queue = LinkedList::new();
         let thread = thread::spawn(move || loop {
