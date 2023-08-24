@@ -23,6 +23,7 @@ impl CopierPool {
         let mut workers = Vec::with_capacity(size);
         let receiver = Arc::new(Mutex::new(receiver));
         let shared_stdout = Arc::new(Mutex::new(stdout()));
+        // TODO: set position at the end
         for id in 0..size {
             workers.push(Worker::new(
                 id,

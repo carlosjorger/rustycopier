@@ -7,6 +7,7 @@ use std::{
     path::Path,
     sync::{Arc, Mutex, MutexGuard},
 };
+// TODO: remove unnecessary pub
 
 struct ProgressBarDrawer {
     stdout: Arc<Mutex<Stdout>>,

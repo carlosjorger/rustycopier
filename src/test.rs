@@ -21,6 +21,7 @@ fn copy_to_path(source: &str, target_path: &Path) {
 
     folder.copy_to(target_path);
 }
+// TODO: remove warnings
 fn get_msg_from_file(dir: &TempDir, file_path: &PathBuf) -> Vec<u8> {
     let file_destiny_path: std::path::PathBuf = dir.path().join(file_path.file_name().unwrap());
     fs::read(&file_destiny_path).unwrap()
