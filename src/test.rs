@@ -21,10 +21,10 @@ fn copy_to_path(source: &str, target_path: &Path) {
 
     folder.copy_to(target_path);
 }
-// TODO: remove warnings
-fn get_msg_from_file(dir: &TempDir, file_path: &PathBuf) -> Vec<u8> {
+
+fn get_msg_from_file(dir: &TempDir, file_path: &Path) -> Vec<u8> {
     let file_destiny_path: std::path::PathBuf = dir.path().join(file_path.file_name().unwrap());
-    fs::read(&file_destiny_path).unwrap()
+    fs::read(file_destiny_path).unwrap()
 }
 #[test]
 fn copy_one_file_in_a_folder() {
@@ -64,7 +64,7 @@ fn copy_one_file_in_a_folder() {
         .path()
         .join(file_source_path.parent().unwrap().file_name().unwrap())
         .join("poetry.txt");
-    let new_msg = fs::read(&file_destiny_path).unwrap();
+    let new_msg = fs::read(file_destiny_path).unwrap();
     assert_eq!(msg.to_vec(), new_msg);
 }
 

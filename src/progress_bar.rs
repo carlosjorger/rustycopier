@@ -7,8 +7,6 @@ use std::{
     path::Path,
     sync::{Arc, Mutex, MutexGuard},
 };
-// TODO: remove unnecessary pub
-
 struct ProgressBarDrawer {
     stdout: Arc<Mutex<Stdout>>,
     total_number_of_bars: usize,
@@ -76,6 +74,12 @@ impl ProgressBarDrawer {
             .unwrap()
             .queue(cursor::MoveToColumn(0))
             .unwrap();
+    }
+}
+impl Drop for ProgressBarDrawer {
+    fn drop(&mut self) {
+        let mut stdout_result = self.stdout.lock().unwrap();
+        self.move_to_line(self.final_stdout_position, &mut stdout_result);
     }
 }
 pub struct ProgressBar {
