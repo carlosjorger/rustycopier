@@ -58,7 +58,6 @@ fn copy_one_file_in_a_folder() {
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
 
     copy_to_path(source_dir_str, destiny_temp_dir.path());
-    // let new_msg = get_msg_from_file(&destiny_temp_dir, &file_source_path);
 
     let file_destiny_path: std::path::PathBuf = destiny_temp_dir
         .path()

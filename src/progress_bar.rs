@@ -35,17 +35,14 @@ impl ProgressBarDrawer {
     }
     fn draw_a_bar(&mut self, number_of_bars: usize) {
         let mut stdout_result = self.stdout.lock().unwrap();
-        self.move_to_line(self.stdout_position, &mut stdout_result);
-        self.clean_line(self.stdout_position, &mut stdout_result);
+        self.move_line_and_clean(self.stdout_position, &mut stdout_result);
         print!(
-            "\r Copying: [{}{}] {}%",
+            "\r[{}{}] {}%",
             &self.progress_window[0..number_of_bars],
             &self.rest_window[0..(self.total_number_of_bars - number_of_bars)],
             self.percentage_of_number_of_bars(number_of_bars),
         );
-        self.move_to_line(self.stdout_position + 1, &mut stdout_result);
-        self.clean_line(self.stdout_position + 1, &mut stdout_result);
-        print!("------------------------------------------");
+        self.move_line_and_clean(self.stdout_position + 2, &mut stdout_result);
         self.move_to_line(self.final_stdout_position, &mut stdout_result);
         stdout_result.flush().unwrap();
     }
@@ -54,13 +51,14 @@ impl ProgressBarDrawer {
     }
     fn print_new_file(&self, file_name: &str) {
         let mut stdout_result = self.stdout.lock().unwrap();
-        self.move_to_line(self.stdout_position, &mut stdout_result);
-        self.clean_line(self.stdout_position + 2, &mut stdout_result);
-        self.move_to_line(self.stdout_position + 2, &mut stdout_result);
-        print!("{file_name}");
+        self.move_line_and_clean(self.stdout_position + 1, &mut stdout_result);
+        print!("Copying {file_name}...");
         stdout_result.flush().unwrap();
     }
-
+    fn move_line_and_clean(&self, position: u16, stdout: &mut MutexGuard<'_, Stdout>) {
+        self.move_to_line(position, stdout);
+        self.clean_line(position, stdout);
+    }
     fn clean_line(&self, position: u16, stdout: &mut MutexGuard<'_, Stdout>) {
         stdout
             .queue(cursor::MoveToRow(position))
@@ -82,6 +80,7 @@ impl Drop for ProgressBarDrawer {
         self.move_to_line(self.final_stdout_position, &mut stdout_result);
     }
 }
+// TODO: change the positions
 pub struct ProgressBar {
     total_size: usize,
     consumed_size: usize,
