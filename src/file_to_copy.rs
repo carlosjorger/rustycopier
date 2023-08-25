@@ -1,9 +1,9 @@
+use crate::copier::Copier;
+use crate::copier::FileCopy;
 use std::collections::LinkedList;
 use std::fs::{self, create_dir_all};
 use std::path::{Path, PathBuf};
-
-use crate::copier::Copier;
-use crate::copier::FileCopy;
+use std::process;
 pub struct FileToCopy<'a> {
     path: &'a Path,
     files: Vec<PathBuf>,
@@ -30,13 +30,25 @@ impl<'a> FileToCopy<'a> {
         }
         path_list.push_back(path_buf);
         while let Some(path_buf) = path_list.pop_back() {
-            let paths = fs::read_dir(path_buf).expect("invalid path");
-            for path in paths {
-                let path = path.expect("invalid path").path();
-                if path.is_dir() {
-                    path_list.push_back(path);
-                } else if path.is_file() {
-                    self.save_file(path);
+            self.read_subdirs_from_path(path_buf, &mut path_list);
+        }
+    }
+    fn read_subdirs_from_path(&mut self, path: PathBuf, path_list: &mut LinkedList<PathBuf>) {
+        match fs::read_dir(&path) {
+            Ok(paths) => {
+                for path in paths {
+                    let path = path.expect("invalid path").path();
+                    if path.is_dir() {
+                        path_list.push_back(path);
+                    } else if path.is_file() {
+                        self.save_file(path);
+                    }
+                }
+            }
+            Err(_) => {
+                if let Some(path_name) = path.to_str() {
+                    eprintln!("!!!!The path {path_name} doesn´t exist");
+                    process::exit(1);
                 }
             }
         }
