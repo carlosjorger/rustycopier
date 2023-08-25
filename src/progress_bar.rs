@@ -42,7 +42,6 @@ impl ProgressBarDrawer {
             &self.rest_window[0..(self.total_number_of_bars - number_of_bars)],
             self.percentage_of_number_of_bars(number_of_bars),
         );
-        self.move_line_and_clean(self.stdout_position + 2, &mut stdout_result);
         self.move_to_line(self.final_stdout_position, &mut stdout_result);
         stdout_result.flush().unwrap();
     }
@@ -80,7 +79,7 @@ impl Drop for ProgressBarDrawer {
         self.move_to_line(self.final_stdout_position, &mut stdout_result);
     }
 }
-// TODO: change the positions
+// TODO: try to mimic the vite terminal
 pub struct ProgressBar {
     total_size: usize,
     consumed_size: usize,
@@ -101,8 +100,8 @@ impl ProgressBar {
             consumed_size: 0,
             progress_bar: ProgressBarDrawer::progress_bar(
                 NUMBER_OF_BARS,
-                stdout_position + progress_bar_position * 3 + 1,
-                stdout_position + total_of_progress_bar * 3 + 1,
+                stdout_position + progress_bar_position * 2,
+                stdout_position + total_of_progress_bar * 2,
                 stout_mutex,
             ),
             total_of_bars: NUMBER_OF_BARS,
