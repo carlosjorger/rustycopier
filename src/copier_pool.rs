@@ -8,7 +8,10 @@ use std::{
     thread,
 };
 
-use crossterm::{cursor, QueueableCommand};
+use crossterm::{
+    cursor::{self, position},
+    QueueableCommand,
+};
 
 use crate::progress_bar::ProgressBar;
 
@@ -25,7 +28,12 @@ impl CopierPool {
         let mut workers = Vec::with_capacity(size);
         let receiver = Arc::new(Mutex::new(receiver));
         let shared_stdout = Arc::new(Mutex::new(stdout()));
-        print!("\n\n\n\n\n\n\n\n\n");
+        let (_, stdout_position) = position().unwrap();
+        println!(">{stdout_position}");
+        for _ in 0..size {
+            println!();
+            println!();
+        }
         let mut std = stdout().lock();
         std.queue(cursor::MoveTo(0, 4)).unwrap();
         std.flush().unwrap();

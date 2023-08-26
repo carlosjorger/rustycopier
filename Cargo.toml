@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-crossterm="0.26.1"
-tempdir = "0.3"
+crossterm="0.27.0"
+tempdir = "0.3.7"
 rayon = "1.7"
