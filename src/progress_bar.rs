@@ -66,11 +66,7 @@ impl ProgressBarDrawer {
             .unwrap();
     }
     fn move_to_line(&self, stdout_position: u16, stdout: &mut MutexGuard<'_, Stdout>) {
-        stdout
-            .queue(cursor::MoveToRow(stdout_position))
-            .unwrap()
-            .queue(cursor::MoveToColumn(0))
-            .unwrap();
+        stdout.queue(cursor::MoveTo(0, stdout_position)).unwrap();
     }
 }
 impl Drop for ProgressBarDrawer {
@@ -79,7 +75,6 @@ impl Drop for ProgressBarDrawer {
         self.move_to_line(self.final_stdout_position, &mut stdout_result);
     }
 }
-// TODO: try to mimic the vite terminal
 pub struct ProgressBar {
     total_size: usize,
     consumed_size: usize,

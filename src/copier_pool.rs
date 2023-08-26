@@ -1,12 +1,14 @@
 use std::{
     collections::LinkedList,
-    io::{stdout, Stdout},
+    io::{stdout, Stdout, Write},
     sync::{
         mpsc::{self, Receiver},
         Arc, Mutex,
     },
     thread,
 };
+
+use crossterm::{cursor, QueueableCommand};
 
 use crate::progress_bar::ProgressBar;
 
@@ -23,6 +25,10 @@ impl CopierPool {
         let mut workers = Vec::with_capacity(size);
         let receiver = Arc::new(Mutex::new(receiver));
         let shared_stdout = Arc::new(Mutex::new(stdout()));
+        print!("\n\n\n\n\n\n\n\n\n");
+        let mut std = stdout().lock();
+        std.queue(cursor::MoveTo(0, 4)).unwrap();
+        std.flush().unwrap();
         for id in 0..size {
             workers.push(Worker::new(
                 id,
