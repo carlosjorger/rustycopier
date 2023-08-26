@@ -9,7 +9,8 @@ use std::{
 };
 
 use crossterm::{
-    cursor::{self, position},
+    cursor::{self},
+    terminal::size,
     QueueableCommand,
 };
 
@@ -22,25 +23,17 @@ pub struct CopierPool {
 type WorkerJob = Box<dyn FnOnce(&mut ProgressBar) + Send + 'static>;
 type Job = (WorkerJob, usize);
 impl CopierPool {
-    pub fn new(size: usize) -> Self {
-        assert!(size > 0);
+    pub fn new(worker_number: usize) -> Self {
+        assert!(worker_number > 0);
         let (sender, receiver) = mpsc::channel();
-        let mut workers = Vec::with_capacity(size);
+        let mut workers = Vec::with_capacity(worker_number);
         let receiver = Arc::new(Mutex::new(receiver));
         let shared_stdout = Arc::new(Mutex::new(stdout()));
-        let (_, stdout_position) = position().unwrap();
-        println!(">{stdout_position}");
-        for _ in 0..size {
-            println!();
-            println!();
-        }
-        let mut std = stdout().lock();
-        std.queue(cursor::MoveTo(0, 4)).unwrap();
-        std.flush().unwrap();
-        for id in 0..size {
+        clean_terminal();
+        for id in 0..worker_number {
             workers.push(Worker::new(
                 id,
-                size,
+                worker_number,
                 Arc::clone(&receiver),
                 Arc::clone(&shared_stdout),
             ));
@@ -51,6 +44,7 @@ impl CopierPool {
             sender: Some(sender),
         }
     }
+
     pub fn execute<F>(&self, f: F, file_size: usize)
     where
         F: FnOnce(&mut ProgressBar) + Send + 'static,
@@ -106,4 +100,17 @@ fn execute_jobs_queue(job_queue: &mut LinkedList<WorkerJob>, progress_bar: &mut 
     while let Some(job) = job_queue.pop_back() {
         job(progress_bar);
     }
+}
+
+fn clean_terminal() {
+    let (_, terminal_length) = size().unwrap();
+    // TODO: show the text before copy bars
+    println!("Copy in progress....");
+    println!();
+    for _ in 0..(terminal_length - 2) {
+        println!();
+    }
+    let mut std = stdout().lock();
+    std.queue(cursor::MoveToRow(0)).unwrap();
+    std.flush().unwrap();
 }
