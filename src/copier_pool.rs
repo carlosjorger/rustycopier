@@ -104,13 +104,12 @@ fn execute_jobs_queue(job_queue: &mut LinkedList<WorkerJob>, progress_bar: &mut 
 
 fn clean_terminal() {
     let (_, terminal_length) = size().unwrap();
-    // TODO: show the text before copy bars
     println!("Copy in progress....");
     println!();
-    for _ in 0..(terminal_length - 2) {
+    for _ in 0..(terminal_length - 3) {
         println!();
     }
     let mut std = stdout().lock();
-    std.queue(cursor::MoveToRow(0)).unwrap();
+    std.queue(cursor::MoveToRow(2)).unwrap();
     std.flush().unwrap();
 }
