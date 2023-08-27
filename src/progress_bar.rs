@@ -7,6 +7,65 @@ use std::{
     path::Path,
     sync::{Arc, Mutex, MutexGuard},
 };
+pub trait ProgressCounter {
+    fn set_new_file(&mut self, file_path: &Path);
+    fn add_size(&mut self, size: usize);
+    fn consume(&mut self, lenght: usize);
+}
+pub struct ProgressBar {
+    total_size: usize,
+    consumed_size: usize,
+    progress_bar: ProgressBarDrawer,
+    total_of_bars: usize,
+    finished: bool,
+}
+impl ProgressCounter for ProgressBar {
+    fn set_new_file(&mut self, file_path: &Path) {
+        if let Some(file_name) = file_path.file_name() {
+            if let Some(file_name_str) = file_name.to_str() {
+                self.progress_bar.print_new_file(file_name_str);
+            }
+        }
+    }
+
+    fn add_size(&mut self, size: usize) {
+        self.total_size += size;
+    }
+    fn consume(&mut self, lenght: usize) {
+        self.consumed_size += lenght;
+        let approximate_number_of_bars: usize =
+            (self.fraction_of_consume() * (self.total_of_bars as f64)).round() as usize;
+        if !self.finished {
+            self.progress_bar.draw_a_bar(approximate_number_of_bars);
+        }
+        self.finished = approximate_number_of_bars == self.total_of_bars;
+    }
+}
+impl ProgressBar {
+    pub fn new(
+        progress_bar_position: u16,
+        total_of_progress_bar: u16,
+        stout_mutex: Arc<Mutex<Stdout>>,
+    ) -> Self {
+        const NUMBER_OF_BARS: usize = 25;
+        let (_, stdout_position) = position().unwrap();
+        Self {
+            total_size: 0,
+            consumed_size: 0,
+            progress_bar: ProgressBarDrawer::progress_bar(
+                NUMBER_OF_BARS,
+                stdout_position + progress_bar_position * 2,
+                stdout_position + total_of_progress_bar * 2,
+                stout_mutex,
+            ),
+            total_of_bars: NUMBER_OF_BARS,
+            finished: false,
+        }
+    }
+    fn fraction_of_consume(&self) -> f64 {
+        (self.consumed_size as f64) / (self.total_size as f64)
+    }
+}
 struct ProgressBarDrawer {
     stdout: Arc<Mutex<Stdout>>,
     total_number_of_bars: usize,
@@ -73,57 +132,5 @@ impl Drop for ProgressBarDrawer {
     fn drop(&mut self) {
         let mut stdout_result = self.stdout.lock().unwrap();
         self.move_to_line(self.final_stdout_position, &mut stdout_result);
-    }
-}
-pub struct ProgressBar {
-    total_size: usize,
-    consumed_size: usize,
-    progress_bar: ProgressBarDrawer,
-    total_of_bars: usize,
-    finished: bool,
-}
-impl ProgressBar {
-    pub fn new(
-        progress_bar_position: u16,
-        total_of_progress_bar: u16,
-        stout_mutex: Arc<Mutex<Stdout>>,
-    ) -> Self {
-        const NUMBER_OF_BARS: usize = 25;
-        let (_, stdout_position) = position().unwrap();
-        Self {
-            total_size: 0,
-            consumed_size: 0,
-            progress_bar: ProgressBarDrawer::progress_bar(
-                NUMBER_OF_BARS,
-                stdout_position + progress_bar_position * 2,
-                stdout_position + total_of_progress_bar * 2,
-                stout_mutex,
-            ),
-            total_of_bars: NUMBER_OF_BARS,
-            finished: false,
-        }
-    }
-
-    pub fn set_new_file(&mut self, file_path: &Path) {
-        if let Some(file_name) = file_path.file_name() {
-            if let Some(file_name_str) = file_name.to_str() {
-                self.progress_bar.print_new_file(file_name_str);
-            }
-        }
-    }
-    pub fn add_size(&mut self, size: usize) {
-        self.total_size += size;
-    }
-    pub fn consume(&mut self, lenght: usize) {
-        self.consumed_size += lenght;
-        let approximate_number_of_bars: usize =
-            (self.fraction_of_consume() * (self.total_of_bars as f64)).round() as usize;
-        if !self.finished {
-            self.progress_bar.draw_a_bar(approximate_number_of_bars);
-        }
-        self.finished = approximate_number_of_bars == self.total_of_bars;
-    }
-    fn fraction_of_consume(&self) -> f64 {
-        (self.consumed_size as f64) / (self.total_size as f64)
     }
 }

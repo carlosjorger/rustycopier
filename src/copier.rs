@@ -1,4 +1,7 @@
-use crate::{copier_pool::CopierPool, progress_bar};
+use crate::{
+    copier_pool::CopierPool,
+    progress_bar::{self, ProgressCounter},
+};
 use std::{
     fs::File,
     io::{self, BufRead, BufReader, BufWriter, Write},
@@ -45,8 +48,8 @@ impl Copier {
         }
     }
 }
-fn create_file(
-    progress_bar: &mut progress_bar::ProgressBar,
+fn create_file<T: ProgressCounter>(
+    progress_bar: &mut T,
     source_file: &PathBuf,
     target_file: &PathBuf,
 ) -> Result<(), io::Error> {
@@ -57,8 +60,8 @@ fn create_file(
     copy_file(progress_bar, destiny_file, to_copy_file, 1024 * 500);
     Ok(())
 }
-fn copy_file(
-    progress_bar: &mut progress_bar::ProgressBar,
+fn copy_file<T: ProgressCounter>(
+    progress_bar: &mut T,
     source_file: File,
     destiny_file: File,
     capacity: usize,
