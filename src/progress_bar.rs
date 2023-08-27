@@ -9,7 +9,6 @@ use std::{
 };
 pub trait ProgressCounter {
     fn set_new_file(&mut self, file_path: &Path);
-    fn add_size(&mut self, size: usize);
     fn consume(&mut self, lenght: usize);
 }
 pub struct ProgressBar {
@@ -28,9 +27,6 @@ impl ProgressCounter for ProgressBar {
         }
     }
 
-    fn add_size(&mut self, size: usize) {
-        self.total_size += size;
-    }
     fn consume(&mut self, lenght: usize) {
         self.consumed_size += lenght;
         let approximate_number_of_bars: usize =
@@ -61,6 +57,9 @@ impl ProgressBar {
             total_of_bars: NUMBER_OF_BARS,
             finished: false,
         }
+    }
+    pub fn add_size(&mut self, size: usize) {
+        self.total_size += size;
     }
     fn fraction_of_consume(&self) -> f64 {
         (self.consumed_size as f64) / (self.total_size as f64)
