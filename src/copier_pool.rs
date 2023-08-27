@@ -15,7 +15,7 @@ use crossterm::{
 };
 
 use crate::progress_bar::ProgressBar;
-
+// TODO: use ProgressCounter trait in copier_pool
 pub struct CopierPool {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job>>,

@@ -7,7 +7,7 @@ use std::{
     io::{self, BufRead, BufReader, BufWriter, Write},
     path::PathBuf,
 };
-//TODO choose a better type for files
+//TODO replace with a tuple with a type alias
 pub struct FileCopy {
     source_file: PathBuf,
     target_file: PathBuf,
