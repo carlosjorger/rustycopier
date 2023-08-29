@@ -14,15 +14,15 @@ use crossterm::{
     QueueableCommand,
 };
 
-use crate::progress_counter::ProgressBar;
-// TODO: use ProgressCounter trait in copier_pool
-pub struct CopierPool {
+use crate::progress_counter::{ProgressBar, ProgressCounter};
+pub struct CopierPool<T: ProgressCounter> {
     workers: Vec<Worker>,
-    sender: Option<mpsc::Sender<Job>>,
+    sender: Option<mpsc::Sender<Job<T>>>,
 }
-type WorkerJob = Box<dyn FnOnce(&mut ProgressBar) + Send + 'static>;
-type Job = (WorkerJob, usize);
-impl CopierPool {
+type WorkerJob<T> = Box<dyn FnOnce(&mut T) + Send + 'static>;
+type Job<T> = (WorkerJob<T>, usize);
+// TODO: try to use generics in the implementation
+impl CopierPool<ProgressBar> {
     pub fn new(worker_number: usize) -> Self {
         assert!(worker_number > 0);
         let (sender, receiver) = mpsc::channel();
@@ -55,7 +55,7 @@ impl CopierPool {
         }
     }
 }
-impl Drop for CopierPool {
+impl<T: ProgressCounter> Drop for CopierPool<T> {
     fn drop(&mut self) {
         drop(self.sender.take());
         for worker in &mut self.workers {
@@ -73,7 +73,7 @@ impl Worker {
     fn new(
         id: usize,
         total_of_workers: usize,
-        receiver: Arc<Mutex<Receiver<Job>>>,
+        receiver: Arc<Mutex<Receiver<Job<ProgressBar>>>>,
         shared_stdout: Arc<Mutex<Stdout>>,
     ) -> Worker {
         let mut progress_bar = ProgressBar::new(id as u16, total_of_workers as u16, shared_stdout);
@@ -96,7 +96,10 @@ impl Worker {
         }
     }
 }
-fn execute_jobs_queue(job_queue: &mut LinkedList<WorkerJob>, progress_bar: &mut ProgressBar) {
+fn execute_jobs_queue(
+    job_queue: &mut LinkedList<WorkerJob<ProgressBar>>,
+    progress_bar: &mut ProgressBar,
+) {
     while let Some(job) = job_queue.pop_back() {
         job(progress_bar);
     }
