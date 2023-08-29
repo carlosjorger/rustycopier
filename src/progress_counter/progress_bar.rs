@@ -7,10 +7,9 @@ use std::{
     path::Path,
     sync::{Arc, Mutex, MutexGuard},
 };
-pub trait ProgressCounter {
-    fn set_new_file(&mut self, file_path: &Path);
-    fn consume(&mut self, lenght: usize);
-}
+
+use super::ProgressCounter;
+
 pub struct ProgressBar {
     total_size: usize,
     consumed_size: usize,

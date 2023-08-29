@@ -1,6 +1,6 @@
 use crate::{
     copier_pool::CopierPool,
-    progress_bar::{self, ProgressCounter},
+    progress_counter::{progress_bar, ProgressCounter},
 };
 use std::{
     fs::File,

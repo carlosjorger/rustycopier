@@ -2,13 +2,12 @@ mod config;
 mod copier;
 mod copier_pool;
 mod file_to_copy;
-mod progress_bar;
+mod progress_counter;
 #[cfg(test)]
 mod test;
 
 use crate::file_to_copy::FileToCopy;
 use std::{env, path::Path, process, time::Instant};
-//TODO: create ProgressCounter module
 fn main() {
     let config = config::Config::new(env::args()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
