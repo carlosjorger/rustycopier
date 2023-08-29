@@ -14,7 +14,7 @@ use crossterm::{
     QueueableCommand,
 };
 
-use crate::progress_counter::progress_bar::ProgressBar;
+use crate::progress_counter::ProgressBar;
 // TODO: use ProgressCounter trait in copier_pool
 pub struct CopierPool {
     workers: Vec<Worker>,

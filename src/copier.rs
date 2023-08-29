@@ -1,6 +1,6 @@
 use crate::{
     copier_pool::CopierPool,
-    progress_counter::{progress_bar, ProgressCounter},
+    progress_counter::{ProgressBar, ProgressCounter},
 };
 use std::{
     fs::File,
@@ -38,7 +38,7 @@ impl Copier {
             if !self.paused {
                 let file_size = source_file.metadata().unwrap().len() as usize;
                 pool.execute(
-                    move |bar: &mut progress_bar::ProgressBar| {
+                    move |bar: &mut ProgressBar| {
                         create_file(bar, &source_file, &target_file).expect("error copy the file");
                     },
                     file_size,
