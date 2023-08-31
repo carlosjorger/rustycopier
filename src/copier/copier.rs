@@ -7,7 +7,8 @@ use std::{
     io::{self, BufRead, BufReader, BufWriter, Write},
     path::PathBuf,
 };
-//TODO replace with a tuple with a type alias
+//TODO: change the name of the type
+
 pub struct FileCopy {
     source_file: PathBuf,
     target_file: PathBuf,
@@ -48,6 +49,7 @@ impl Copier {
         }
     }
 }
+// TODO: pass this funcionality to FileCopy type
 fn create_file<T: ProgressCounter>(
     progress_bar: &mut T,
     source_file: &PathBuf,
