@@ -1,9 +1,11 @@
-use crate::copier::Copier;
 use crate::copier::FileCopy;
 use std::collections::LinkedList;
 use std::fs::{self, create_dir_all};
 use std::path::{Path, PathBuf};
 use std::process;
+
+use super::copier::Copier;
+
 pub struct FileToCopy<'a> {
     path: &'a Path,
     files: Vec<PathBuf>,

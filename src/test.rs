@@ -8,7 +8,7 @@ use std::{
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use tempdir::TempDir;
 
-use crate::file_to_copy::FileToCopy;
+use crate::copier::FileToCopy;
 fn create_file(file_path: &PathBuf, content: &[u8]) -> Result<(), io::Error> {
     let mut file_source = File::create(file_path)?;
 
