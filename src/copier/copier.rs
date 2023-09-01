@@ -10,14 +10,39 @@ use std::{
 //TODO: change the name of the type
 
 pub struct FileCopy {
-    source_file: PathBuf,
-    target_file: PathBuf,
+    source_file_path: PathBuf,
+    source_file: File,
+    target_file: File,
 }
 impl FileCopy {
     pub fn from_files(to_file: PathBuf, file: PathBuf) -> Self {
+        let source_file = File::open(&file).expect("error opening the file");
+        let target_file = File::create(to_file).expect("error creating the file");
         Self {
-            source_file: file,
-            target_file: to_file,
+            source_file_path: file,
+            source_file,
+            target_file,
+        }
+    }
+    fn create_file<T: ProgressCounter>(&mut self, progress_bar: &mut T) -> Result<(), io::Error> {
+        progress_bar.set_new_file(&self.source_file_path);
+
+        self.copy_file(progress_bar, 1024 * 500);
+        Ok(())
+    }
+    fn copy_file<T: ProgressCounter>(&self, progress_bar: &mut T, capacity: usize) {
+        let mut stream = BufWriter::with_capacity(capacity, &self.target_file);
+        let mut reader = BufReader::with_capacity(capacity, &self.source_file);
+
+        loop {
+            let buffer = reader.fill_buf().expect("error in the buffer");
+            let buffer_lenght = buffer.len();
+            if buffer_lenght == 0 {
+                break;
+            }
+            stream.write_all(buffer).expect("error to write");
+            reader.consume(buffer_lenght);
+            progress_bar.consume(buffer_lenght);
         }
     }
 }
@@ -31,54 +56,17 @@ impl Copier {
     pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
         let pool = CopierPool::new(4);
 
-        for FileCopy {
-            source_file,
-            target_file,
-        } in files
-        {
+        for mut file_copy in files {
             if !self.paused {
-                let file_size = source_file.metadata().unwrap().len() as usize;
+                let file_size = file_copy.source_file_path.metadata().unwrap().len() as usize;
                 pool.execute(
                     move |bar: &mut ProgressBar| {
-                        create_file(bar, &source_file, &target_file).expect("error copy the file");
+                        file_copy.create_file(bar).expect("error copy the file");
                     },
                     file_size,
                 );
                 self.paused = false;
             }
         }
-    }
-}
-// TODO: pass this funcionality to FileCopy type
-fn create_file<T: ProgressCounter>(
-    progress_bar: &mut T,
-    source_file: &PathBuf,
-    target_file: &PathBuf,
-) -> Result<(), io::Error> {
-    let destiny_file = File::open(source_file).expect("error opening the file");
-    let to_copy_file = File::create(target_file).expect("error creating the file");
-    progress_bar.set_new_file(source_file);
-
-    copy_file(progress_bar, destiny_file, to_copy_file, 1024 * 500);
-    Ok(())
-}
-fn copy_file<T: ProgressCounter>(
-    progress_bar: &mut T,
-    source_file: File,
-    destiny_file: File,
-    capacity: usize,
-) {
-    let mut stream = BufWriter::with_capacity(capacity, &destiny_file);
-    let mut reader = BufReader::with_capacity(capacity, &source_file);
-
-    loop {
-        let buffer = reader.fill_buf().expect("error in the buffer");
-        let buffer_lenght = buffer.len();
-        if buffer_lenght == 0 {
-            break;
-        }
-        stream.write_all(buffer).expect("error to write");
-        reader.consume(buffer_lenght);
-        progress_bar.consume(buffer_lenght);
     }
 }
