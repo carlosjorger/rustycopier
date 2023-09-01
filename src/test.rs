@@ -70,39 +70,19 @@ fn copy_one_file() {
 #[ignore]
 fn copy_10000_files() {
     const NUMBER_OF_FILES: usize = 10000;
-    let source_dir = TempDir::new("my_source_dir").expect("unable create a dir");
-    let msg = get_example_text();
-    for file_number in 0..NUMBER_OF_FILES {
-        let file_source_path: std::path::PathBuf =
-            source_dir.path().join(format!("poetry{}.txt", file_number));
-
-        create_file(&file_source_path, msg).unwrap();
-    }
-    let source_dir_str = source_dir.path().to_str().unwrap();
-    let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-
-    copy_to_path(source_dir_str, destiny_temp_dir.path());
-
-    let msg_vector = msg.to_vec();
-    (0..NUMBER_OF_FILES)
-        .into_par_iter()
-        .for_each(|file_number| {
-            let file_destiny_path: std::path::PathBuf = destiny_temp_dir
-                .path()
-                .join(source_dir.path().file_name().unwrap())
-                .join(format!("poetry{}.txt", file_number));
-            let new_msg = fs::read(file_destiny_path).unwrap();
-            assert_eq!(msg_vector, new_msg);
-        });
+    copy_files(NUMBER_OF_FILES)
 }
 
 #[test]
 #[ignore]
 fn copy_5000_files() {
     const NUMBER_OF_FILES: usize = 5000;
+    copy_files(NUMBER_OF_FILES);
+}
+fn copy_files(number_of_files: usize) {
     let source_dir = TempDir::new("my_source_dir").expect("unable create a dir");
     let msg = get_example_text();
-    for file_number in 0..NUMBER_OF_FILES {
+    for file_number in 0..number_of_files {
         let file_source_path: std::path::PathBuf =
             source_dir.path().join(format!("poetry{}.txt", file_number));
 
@@ -113,7 +93,7 @@ fn copy_5000_files() {
 
     copy_to_path(source_dir_str, destiny_temp_dir.path());
     let msg_vector = msg.to_vec();
-    (0..NUMBER_OF_FILES)
+    (0..number_of_files)
         .into_par_iter()
         .for_each(|file_number| {
             let file_destiny_path: std::path::PathBuf = destiny_temp_dir
