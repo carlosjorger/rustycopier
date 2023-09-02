@@ -1,8 +1,10 @@
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader, BufWriter, Write},
+    io::{BufRead, BufReader, BufWriter, Write},
     path::PathBuf,
 };
+
+use anyhow::{Context, Error, Ok};
 
 use crate::progress_counter::ProgressCounter;
 
@@ -12,19 +14,20 @@ pub struct FileCopy {
     target_file: File,
 }
 impl FileCopy {
-    pub fn from_files(target_file_path: PathBuf, source_file_path: PathBuf) -> Self {
-        let source_file: File = File::open(&source_file_path).expect("error opening the file");
-        let target_file = File::create(target_file_path).expect("error creating the file");
-        Self {
+    pub fn from_files(target_file_path: PathBuf, source_file_path: PathBuf) -> Result<Self, Error> {
+        let source_file: File = File::open(&source_file_path)
+            .with_context(|| format!("Could not read the file`{}`", source_file_path.display()))
+            .unwrap();
+        let target_file = File::create(&target_file_path)
+            .with_context(|| format!("Could not create the file`{}`", target_file_path.display()))
+            .unwrap();
+        Ok(Self {
             source_file_path,
             source_file,
             target_file,
-        }
+        })
     }
-    pub fn create_file<T: ProgressCounter>(
-        &mut self,
-        progress_bar: &mut T,
-    ) -> Result<(), io::Error> {
+    pub fn create_file<T: ProgressCounter>(&mut self, progress_bar: &mut T) -> Result<(), Error> {
         progress_bar.set_new_file(&self.source_file_path);
 
         self.copy_file(progress_bar, 1024 * 500);

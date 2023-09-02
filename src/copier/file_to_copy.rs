@@ -65,12 +65,13 @@ impl<'a> FileToCopy<'a> {
     //TODO:  try to use PathBuf
     pub fn copy_to(&mut self, target_path: &Path) {
         self.create_source_folder(target_path);
-
+        //TODO: create all subfolders
         let copies = self.file_paths.iter().map(|path: &PathBuf| {
             FileCopy::from_files(
                 self.get_path_with_prefix_path(path, target_path),
                 path.to_path_buf(),
             )
+            .unwrap()
         });
 
         let mut copier = Copier::from_folder_to_dir();
