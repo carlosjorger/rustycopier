@@ -10,3 +10,4 @@ crossterm="0.27.0"
 tempdir = "0.3.7"
 rayon = "1.7"
 clap = { version = "4.0", features = ["derive"] }
+anyhow="1.0.75"

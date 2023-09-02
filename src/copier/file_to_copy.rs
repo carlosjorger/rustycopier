@@ -1,8 +1,9 @@
+use anyhow::{Context, Error, Ok};
+
 use crate::copier::FileCopy;
 use std::collections::LinkedList;
 use std::fs::{self, create_dir_all};
 use std::path::{Path, PathBuf};
-use std::process;
 
 use super::Copier;
 
@@ -24,37 +25,35 @@ impl<'a> FileToCopy<'a> {
             parent_path,
         }
     }
-    pub fn load_files_from_path(&mut self) {
+    pub fn load_files_from_path(&mut self) -> Result<(), Error> {
         let mut path_list: LinkedList<PathBuf> = LinkedList::new();
         let path_buf = PathBuf::from(&self.path);
         if path_buf.is_file() {
             self.save_file(path_buf);
-            return;
+            return Ok(());
         }
         path_list.push_back(path_buf);
         while let Some(path_buf) = path_list.pop_back() {
-            self.read_subdirs_from_path(path_buf, &mut path_list);
+            self.read_subdirs_from_path(path_buf, &mut path_list)?;
         }
+        Ok(())
     }
-    fn read_subdirs_from_path(&mut self, path: PathBuf, path_list: &mut LinkedList<PathBuf>) {
-        match fs::read_dir(&path) {
-            Ok(paths) => {
-                for path in paths {
-                    let path = path.expect("invalid path").path();
-                    if path.is_dir() {
-                        path_list.push_back(path);
-                    } else if path.is_file() {
-                        self.save_file(path);
-                    }
-                }
-            }
-            Err(_) => {
-                if let Some(path_name) = path.to_str() {
-                    eprintln!("!!!!The path {path_name} doesn´t exist");
-                    process::exit(1);
-                }
+    fn read_subdirs_from_path(
+        &mut self,
+        path: PathBuf,
+        path_list: &mut LinkedList<PathBuf>,
+    ) -> Result<(), Error> {
+        let paths = fs::read_dir(&path)
+            .with_context(|| (format!("Could not read file the path`{}`", path.display())))?;
+        for path in paths {
+            let path = path.expect("invalid path").path();
+            if path.is_dir() {
+                path_list.push_back(path);
+            } else if path.is_file() {
+                self.save_file(path);
             }
         }
+        Ok(())
     }
     fn save_file(&mut self, file_path: PathBuf) {
         let file_size = file_path.metadata().unwrap().len() as usize;
