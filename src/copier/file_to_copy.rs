@@ -4,7 +4,7 @@ use std::fs::{self, create_dir_all};
 use std::path::{Path, PathBuf};
 use std::process;
 
-use super::copier::Copier;
+use super::Copier;
 
 pub struct FileToCopy<'a> {
     path: &'a Path,
