@@ -4,7 +4,7 @@ mod copier_pool;
 mod progress_counter;
 #[cfg(test)]
 mod test;
-use std::time::Instant;
+use std::{path::Path, time::Instant};
 
 use clap::Parser;
 
@@ -13,10 +13,13 @@ use crate::copier::FileToCopy;
 fn main() {
     let config = config::Config::parse();
     let start = Instant::now();
-    for source_path in config.source_paths {
-        let mut folder = FileToCopy::from_path(&source_path);
-        folder.load_files_from_path();
-        folder.copy_to(config.target_path.as_path());
+    println!("{:#?}", config.paths);
+    if let Some((target_path, source_paths)) = config.paths.split_last() {
+        for source_path in source_paths {
+            let mut folder = FileToCopy::from_path(source_path);
+            folder.load_files_from_path();
+            folder.copy_to(Path::new(target_path));
+        }
     }
     let duration = start.elapsed();
     println!();

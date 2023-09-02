@@ -13,6 +13,7 @@ pub struct FileToCopy<'a> {
     parent_path: Option<&'a Path>,
 }
 impl<'a> FileToCopy<'a> {
+    //TODO: try to use PathBuf
     pub fn from_path(path: &'a str) -> Self {
         let file_paths: Vec<PathBuf> = Vec::new();
         let parent_path = Path::new(path).parent();
@@ -60,6 +61,7 @@ impl<'a> FileToCopy<'a> {
         self.total_size += file_size;
         self.file_paths.push(file_path);
     }
+    //TODO:  try to use PathBuf
     pub fn copy_to(&mut self, target_path: &Path) {
         self.create_source_folder(target_path);
 
