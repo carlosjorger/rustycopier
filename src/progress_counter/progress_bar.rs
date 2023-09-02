@@ -93,6 +93,7 @@ impl ProgressBarDrawer {
     fn draw_a_bar(&mut self, number_of_bars: usize) {
         let mut stdout_result = self.stdout.lock().unwrap();
         self.move_line_and_clean(self.stdout_position, &mut stdout_result);
+        // TODO: test https://crates.io/crates/indicatif crates
         print!(
             "\r[{}{}] {}%",
             &self.progress_window[0..number_of_bars],

@@ -9,11 +9,10 @@ use std::{path::Path, time::Instant};
 use clap::Parser;
 
 use crate::copier::FileToCopy;
-// TODO: apply this doc https://rust-cli.github.io/book/index.html
+// TODO: apply this doc https://rust-cli.github.io/book/tutorial/testing.html
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = config::Config::parse();
     let start = Instant::now();
-    println!("{:#?}", config.paths);
     if let Some((target_path, source_paths)) = config.paths.split_last() {
         for source_path in source_paths {
             let mut folder = FileToCopy::from_path(source_path);

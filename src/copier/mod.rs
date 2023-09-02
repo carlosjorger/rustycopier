@@ -13,7 +13,7 @@ impl Copier {
         Self { paused: false }
     }
     pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
-        let pool = CopierPool::new(4);
+        let pool = CopierPool::new(5);
 
         for mut file_copy in files {
             if !self.paused {

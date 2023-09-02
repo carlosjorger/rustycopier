@@ -13,6 +13,7 @@ pub struct FileToCopy<'a> {
     total_size: usize,
     parent_path: Option<&'a Path>,
 }
+//TODO: test the case when a folder has child folders
 impl<'a> FileToCopy<'a> {
     //TODO: try to use PathBuf
     pub fn from_path(path: &'a str) -> Self {
@@ -45,6 +46,7 @@ impl<'a> FileToCopy<'a> {
     ) -> Result<(), Error> {
         let paths = fs::read_dir(&path)
             .with_context(|| (format!("Could not read file the path`{}`", path.display())))?;
+
         for path in paths {
             let path = path.expect("invalid path").path();
             if path.is_dir() {
