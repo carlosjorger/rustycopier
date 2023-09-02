@@ -7,19 +7,18 @@ use std::{
     io::{self, BufRead, BufReader, BufWriter, Write},
     path::PathBuf,
 };
-//TODO: change the name of the type
-
+// TODO: create separete module for this type
 pub struct FileCopy {
     source_file_path: PathBuf,
     source_file: File,
     target_file: File,
 }
 impl FileCopy {
-    pub fn from_files(to_file: PathBuf, file: PathBuf) -> Self {
-        let source_file = File::open(&file).expect("error opening the file");
-        let target_file = File::create(to_file).expect("error creating the file");
+    pub fn from_files(target_file_path: PathBuf, source_file_path: PathBuf) -> Self {
+        let source_file: File = File::open(&source_file_path).expect("error opening the file");
+        let target_file = File::create(target_file_path).expect("error creating the file");
         Self {
-            source_file_path: file,
+            source_file_path,
             source_file,
             target_file,
         }

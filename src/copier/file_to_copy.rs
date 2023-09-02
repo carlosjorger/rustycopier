@@ -8,17 +8,17 @@ use super::copier::Copier;
 
 pub struct FileToCopy<'a> {
     path: &'a Path,
-    files: Vec<PathBuf>,
+    file_paths: Vec<PathBuf>,
     total_size: usize,
     parent_path: Option<&'a Path>,
 }
 impl<'a> FileToCopy<'a> {
     pub fn from_path(path: &'a str) -> Self {
-        let files: Vec<PathBuf> = Vec::new();
+        let file_paths: Vec<PathBuf> = Vec::new();
         let parent_path = Path::new(path).parent();
         Self {
             path: Path::new(path),
-            files,
+            file_paths,
             total_size: 0,
             parent_path,
         }
@@ -58,20 +58,20 @@ impl<'a> FileToCopy<'a> {
     fn save_file(&mut self, file_path: PathBuf) {
         let file_size = file_path.metadata().unwrap().len() as usize;
         self.total_size += file_size;
-        self.files.push(file_path);
+        self.file_paths.push(file_path);
     }
     pub fn copy_to(&mut self, target_path: &Path) {
         self.create_source_folder(target_path);
 
-        let file_in_target_dir = self.files.iter().map(|f| {
+        let copies = self.file_paths.iter().map(|path: &PathBuf| {
             FileCopy::from_files(
-                self.get_path_with_prefix_path(f, target_path),
-                f.to_path_buf(),
+                self.get_path_with_prefix_path(path, target_path),
+                path.to_path_buf(),
             )
         });
 
         let mut copier = Copier::from_folder_to_dir();
-        copier.start(file_in_target_dir);
+        copier.start(copies);
     }
     fn create_source_folder(&self, target_path: &Path) {
         if self.path.is_dir() {

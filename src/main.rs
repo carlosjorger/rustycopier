@@ -7,6 +7,7 @@ mod test;
 use std::{env, path::Path, process, time::Instant};
 
 use crate::copier::FileToCopy;
+// TODO: apply this doc https://www.rust-lang.org/what/cli
 fn main() {
     let config = config::Config::new(env::args()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
