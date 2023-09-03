@@ -8,19 +8,18 @@ use std::path::{Path, PathBuf};
 use super::Copier;
 
 pub struct FileToCopy<'a> {
-    path: &'a Path,
+    path: PathBuf,
     file_paths: Vec<PathBuf>,
     total_size: usize,
     parent_path: Option<&'a Path>,
 }
 //TODO: test the case when a folder has child folders
 impl<'a> FileToCopy<'a> {
-    //TODO: try to use PathBuf
-    pub fn from_path(path: &'a str) -> Self {
+    pub fn from_path(path: &'a PathBuf) -> Self {
         let file_paths: Vec<PathBuf> = Vec::new();
-        let parent_path = Path::new(path).parent();
+        let parent_path = path.parent();
         Self {
-            path: Path::new(path),
+            path: PathBuf::from(path),
             file_paths,
             total_size: 0,
             parent_path,
@@ -62,7 +61,6 @@ impl<'a> FileToCopy<'a> {
         self.total_size += file_size;
         self.file_paths.push(file_path);
     }
-    //TODO:  try to use PathBuf
     pub fn copy_to(&mut self, target_path: &Path) {
         self.create_source_folder(target_path);
         //TODO: create all subfolders
@@ -79,7 +77,7 @@ impl<'a> FileToCopy<'a> {
     }
     fn create_source_folder(&self, target_path: &Path) {
         if self.path.is_dir() {
-            create_dir_all(self.get_path_with_prefix_path(self.path, target_path))
+            create_dir_all(self.get_path_with_prefix_path(&self.path, target_path))
                 .expect("error creating the folder");
         }
     }

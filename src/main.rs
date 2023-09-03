@@ -4,7 +4,7 @@ mod copier_pool;
 mod progress_counter;
 #[cfg(test)]
 mod test;
-use std::{path::Path, time::Instant};
+use std::time::Instant;
 
 use clap::Parser;
 
@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         for source_path in source_paths {
             let mut folder = FileToCopy::from_path(source_path);
             folder.load_files_from_path()?;
-            folder.copy_to(Path::new(target_path));
+            folder.copy_to(target_path);
         }
     }
     let duration = start.elapsed();

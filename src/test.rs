@@ -14,10 +14,10 @@ fn create_file(file_path: &PathBuf, content: &[u8]) -> Result<(), io::Error> {
     file_source.write_all(content)?;
     Ok(())
 }
-fn copy_to_path(source: &str, target_path: &Path) {
-    let mut folder: FileToCopy = FileToCopy::from_path(source);
-    folder.load_files_from_path();
-
+fn copy_to_path(source: &Path, target_path: &Path) {
+    let source_path = &source.to_path_buf();
+    let mut folder: FileToCopy = FileToCopy::from_path(source_path);
+    folder.load_files_from_path().unwrap();
     folder.copy_to(target_path);
 }
 
@@ -34,7 +34,7 @@ fn copy_one_file_in_a_folder() {
     let msg = get_example_text();
     create_file(&file_source_path, msg).expect("unable to create the file");
 
-    let source_dir_str = source_dir.path().to_str().unwrap();
+    let source_dir_str = source_dir.path();
 
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
 
@@ -57,10 +57,10 @@ fn copy_one_file() {
     let msg = get_example_text();
     create_file(&file_source_path, msg).unwrap();
 
-    let source_dir_str = file_source_path.to_str().unwrap();
+    let source_dir_str = file_source_path.to_path_buf();
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
 
-    copy_to_path(source_dir_str, destiny_temp_dir.path());
+    copy_to_path(&source_dir_str, destiny_temp_dir.path());
 
     let new_msg = get_msg_from_file(&destiny_temp_dir, &file_source_path);
 
@@ -88,10 +88,10 @@ fn copy_files(number_of_files: usize) {
 
         create_file(&file_source_path, msg).unwrap();
     }
-    let source_dir_str = source_dir.path().to_str().unwrap();
+    let source_dir_str = source_dir.path().to_path_buf();
     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
 
-    copy_to_path(source_dir_str, destiny_temp_dir.path());
+    copy_to_path(&source_dir_str, destiny_temp_dir.path());
     let msg_vector = msg.to_vec();
     (0..number_of_files)
         .into_par_iter()
