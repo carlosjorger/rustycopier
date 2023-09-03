@@ -13,7 +13,6 @@ pub struct FileToCopy<'a> {
     total_size: usize,
     parent_path: Option<&'a Path>,
 }
-//TODO: test the case when a folder has child folders
 impl<'a> FileToCopy<'a> {
     pub fn from_path(path: &'a PathBuf) -> Self {
         let file_paths: Vec<PathBuf> = Vec::new();

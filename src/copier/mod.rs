@@ -2,7 +2,8 @@ pub mod file_copy;
 pub mod file_to_copy;
 pub use file_copy::FileCopy;
 pub use file_to_copy::FileToCopy;
-
+#[cfg(test)]
+mod file_to_copy_test;
 use crate::{copier_pool::CopierPool, progress_counter::ProgressBar};
 
 pub struct Copier {

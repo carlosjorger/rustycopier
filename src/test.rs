@@ -1,7 +1,6 @@
 use crate::copier::FileToCopy;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use std::{
-    env::temp_dir,
     fs::{self, File},
     io::{self, Write},
     path::{Path, PathBuf},
@@ -21,63 +20,11 @@ fn copy_to_path(source: &Path, target_path: &Path) {
     folder.copy_to(target_path);
 }
 
-fn get_msg_from_file(dir: &TempDir, file_path: &Path) -> Vec<u8> {
-    let file_destiny_path: std::path::PathBuf = dir.path().join(file_path.file_name().unwrap());
-    fs::read(file_destiny_path).unwrap()
-}
-#[test]
-fn copy_one_file_in_a_folder() {
-    let source_dir = TempDir::new("my_source_dir").expect("unable create a dir");
-
-    let file_source_path: std::path::PathBuf = source_dir.path().join("poetry.txt");
-
-    let msg = get_example_text();
-    create_file(&file_source_path, msg).expect("unable to create the file");
-
-    let source_dir_str = source_dir.path();
-
-    let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-
-    copy_to_path(source_dir_str, destiny_temp_dir.path());
-
-    let file_destiny_path: std::path::PathBuf = destiny_temp_dir
-        .path()
-        .join(file_source_path.parent().unwrap().file_name().unwrap())
-        .join("poetry.txt");
-    let new_msg = fs::read(file_destiny_path).unwrap();
-    assert_eq!(msg.to_vec(), new_msg);
-}
-
-#[test]
-fn copy_one_file() {
-    let source_dir = temp_dir();
-
-    let file_source_path: std::path::PathBuf = source_dir.join("poetry.txt");
-
-    let msg = get_example_text();
-    create_file(&file_source_path, msg).unwrap();
-
-    let source_dir_str = file_source_path.to_path_buf();
-    let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-
-    copy_to_path(&source_dir_str, destiny_temp_dir.path());
-
-    let new_msg = get_msg_from_file(&destiny_temp_dir, &file_source_path);
-
-    assert_eq!(msg.to_vec(), new_msg);
-}
 #[test]
 #[ignore]
 fn copy_10000_files() {
     const NUMBER_OF_FILES: usize = 10000;
     copy_files(NUMBER_OF_FILES)
-}
-
-#[test]
-#[ignore]
-fn copy_5000_files() {
-    const NUMBER_OF_FILES: usize = 5000;
-    copy_files(NUMBER_OF_FILES);
 }
 fn copy_files(number_of_files: usize) {
     let source_dir = TempDir::new("my_source_dir").expect("unable create a dir");
