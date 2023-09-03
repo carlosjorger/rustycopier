@@ -19,7 +19,7 @@ fn copy_to_path(source: &Path, target_path: &Path) {
     folder.load_files_from_path().unwrap();
     folder.copy_to(target_path);
 }
-
+//TODO: pass these test as a benchmarks
 #[test]
 #[ignore]
 fn copy_10000_files() {
