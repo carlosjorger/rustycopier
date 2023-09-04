@@ -62,17 +62,21 @@ impl<'a> FileToCopy<'a> {
     }
     pub fn copy_to(&mut self, target_path: &Path) {
         self.create_source_folder(target_path);
-        //TODO: create all subfolders
         let copies = self.file_paths.iter().map(|path: &PathBuf| {
-            FileCopy::from_files(
-                self.get_file_path_inside_folder(path, target_path),
-                path.to_path_buf(),
-            )
-            .unwrap()
+            let target_path = self.get_file_path_inside_folder(path, target_path);
+            self.create_parent_folder(&target_path);
+            FileCopy::from_files(target_path, path.to_path_buf()).unwrap()
         });
 
         let mut copier = Copier::from_folder_to_dir();
         copier.start(copies);
+    }
+    fn create_parent_folder(&self, file_path: &Path) {
+        if let Some(parent_folder) = file_path.parent() {
+            if !parent_folder.exists() {
+                create_dir_all(parent_folder).expect("error creating the folder");
+            }
+        }
     }
     fn create_source_folder(&self, target_path: &Path) {
         if self.path.is_dir() {
@@ -81,9 +85,9 @@ impl<'a> FileToCopy<'a> {
         }
     }
     fn get_file_path_inside_folder(&self, file_path: &Path, folder_path: &Path) -> PathBuf {
-        folder_path.join(self.get_file_path_from_folder(file_path))
+        folder_path.join(self.get_file_path_from_source_folder(file_path))
     }
-    fn get_file_path_from_folder(&self, file: &Path) -> PathBuf {
+    fn get_file_path_from_source_folder(&self, file: &Path) -> PathBuf {
         if let Some(parent) = self.parent_path {
             let file_whithout_path = file
                 .strip_prefix(parent)
