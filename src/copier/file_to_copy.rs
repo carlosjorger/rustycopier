@@ -65,7 +65,7 @@ impl<'a> FileToCopy<'a> {
         //TODO: create all subfolders
         let copies = self.file_paths.iter().map(|path: &PathBuf| {
             FileCopy::from_files(
-                self.get_path_with_prefix_path(path, target_path),
+                self.get_file_path_inside_folder(path, target_path),
                 path.to_path_buf(),
             )
             .unwrap()
@@ -76,12 +76,12 @@ impl<'a> FileToCopy<'a> {
     }
     fn create_source_folder(&self, target_path: &Path) {
         if self.path.is_dir() {
-            create_dir_all(self.get_path_with_prefix_path(&self.path, target_path))
+            create_dir_all(self.get_file_path_inside_folder(&self.path, target_path))
                 .expect("error creating the folder");
         }
     }
-    fn get_path_with_prefix_path(&self, path: &Path, prefix_path: &Path) -> PathBuf {
-        prefix_path.join(self.get_file_path_from_folder(path))
+    fn get_file_path_inside_folder(&self, file_path: &Path, folder_path: &Path) -> PathBuf {
+        folder_path.join(self.get_file_path_from_folder(file_path))
     }
     fn get_file_path_from_folder(&self, file: &Path) -> PathBuf {
         if let Some(parent) = self.parent_path {

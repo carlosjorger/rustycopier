@@ -16,6 +16,32 @@ fn copy_one_file_in_a_folder() {
     let copied_file = temp_folder.child("poetry.txt");
     copied_file.assert(poetry);
 }
+#[test]
+fn copy_one_folder_in_a_folder() {
+    let temp_root = assert_fs::TempDir::new().unwrap();
+    let file = temp_root.child("my_source_folder/poetry.txt");
+    let poetry = get_random_poetry();
+    file.write_str(poetry).unwrap();
+    let target_folder = temp_root.child("my_targer_folder");
+    create_dir(&target_folder).unwrap();
+    let source_folder = temp_root.child("my_source_folder");
+    copy_to_path(&source_folder, &target_folder);
+    let copied_file = target_folder.child("my_source_folder/poetry.txt");
+    copied_file.assert(poetry);
+}
+#[test]
+fn copy_a_nested_folder_in_a_folder() {
+    let temp_root = assert_fs::TempDir::new().unwrap();
+    let file = temp_root.child("my_source_folder/poetries/love/poetry.txt");
+    let poetry = get_random_poetry();
+    file.write_str(poetry).unwrap();
+    let temp_folder = temp_root.child("my_targer_folder");
+    create_dir(&temp_folder).unwrap();
+    let source_folder = temp_root.child("my_source_folder");
+    copy_to_path(&source_folder, &temp_folder);
+    let copied_file = temp_folder.child("my_source_folder/poetries/love/poetry.txt");
+    copied_file.assert(poetry);
+}
 fn get_random_poetry<'a>() -> &'a str {
     "In the world of coding, a language stands
                             Rust, they call it, with its own demands
