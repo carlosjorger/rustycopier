@@ -7,6 +7,7 @@ use std::time::Instant;
 use clap::Parser;
 
 use crate::copier::FileToCopy;
+//TODO: Add not logging flag
 // TODO: apply this doc https://rust-cli.github.io/book/tutorial/testing.html
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = config::Config::parse();
