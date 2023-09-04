@@ -63,28 +63,6 @@ fn get_random_poetry<'a>() -> &'a str {
                             It may be strict, but it's worth the fight
                             For a language that's powerful and right."
 }
-// #[test]
-// fn copy_one_file_in_a_folder() {
-//     let source_dir = TempDir::new("my_source_dir").expect("unable create a dir");
-
-//     let file_source_path: std::path::PathBuf = source_dir.path().join("poetry.txt");
-
-//     let msg = get_example_text();
-//     create_file(&file_source_path, msg).expect("unable to create the file");
-
-//     let source_dir_str = source_dir.path();
-
-//     let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
-
-//     copy_to_path(source_dir_str, destiny_temp_dir.path());
-
-//     let file_destiny_path: std::path::PathBuf = destiny_temp_dir
-//         .path()
-//         .join(file_source_path.parent().unwrap().file_name().unwrap())
-//         .join("poetry.txt");
-//     let new_msg = fs::read(file_destiny_path).unwrap();
-//     assert_eq!(msg.to_vec(), new_msg);
-// }
 
 fn copy_to_path(source: &Path, target_path: &Path) {
     let source_path = &source.to_path_buf();

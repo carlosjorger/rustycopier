@@ -5,7 +5,6 @@ pub use file_to_copy::FileToCopy;
 #[cfg(test)]
 mod file_to_copy_test;
 use crate::{copier_pool::CopierPool, progress_counter::ProgressBar};
-
 pub struct Copier {
     paused: bool,
 }
@@ -14,7 +13,7 @@ impl Copier {
         Self { paused: false }
     }
     pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
-        let pool = CopierPool::new(6);
+        let pool = CopierPool::new(5);
 
         for mut file_copy in files {
             if !self.paused {

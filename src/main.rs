@@ -1,9 +1,7 @@
 mod config;
-mod copier;
+pub mod copier;
 mod copier_pool;
 mod progress_counter;
-#[cfg(test)]
-mod test;
 use std::time::Instant;
 
 use clap::Parser;
