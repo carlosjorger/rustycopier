@@ -35,6 +35,9 @@ impl ProgressCounter for ProgressBar {
         }
         self.finished = approximate_number_of_bars == self.total_of_bars;
     }
+    fn add_size(&mut self, size: usize) {
+        self.total_size += size;
+    }
 }
 impl ProgressBar {
     pub fn new(
@@ -56,9 +59,6 @@ impl ProgressBar {
             total_of_bars: NUMBER_OF_BARS,
             finished: false,
         }
-    }
-    pub fn add_size(&mut self, size: usize) {
-        self.total_size += size;
     }
     fn fraction_of_consume(&self) -> f64 {
         (self.consumed_size as f64) / (self.total_size as f64)

@@ -96,9 +96,9 @@ impl Worker {
         }
     }
 }
-fn execute_jobs_queue(
-    job_queue: &mut LinkedList<WorkerJob<ProgressBar>>,
-    progress_bar: &mut ProgressBar,
+fn execute_jobs_queue<T: ProgressCounter>(
+    job_queue: &mut LinkedList<WorkerJob<T>>,
+    progress_bar: &mut T,
 ) {
     while let Some(job) = job_queue.pop_back() {
         job(progress_bar);
