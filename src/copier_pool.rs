@@ -21,6 +21,7 @@ pub struct CopierPool<T: ProgressCounter> {
 }
 type WorkerJob<T> = Box<dyn FnOnce(&mut T) + Send + 'static>;
 type Job<T> = (WorkerJob<T>, usize);
+// TODO: try to implement rown robin
 impl CopierPool<ProgressBar> {
     pub fn new(worker_number: usize) -> Self {
         assert!(worker_number > 0);
