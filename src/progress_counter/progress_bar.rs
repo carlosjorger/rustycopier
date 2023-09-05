@@ -16,9 +16,13 @@ pub struct ProgressBar {
     progress_bar: ProgressBarDrawer,
     total_of_bars: usize,
     finished: bool,
+    is_logging_active: bool,
 }
 impl ProgressCounter for ProgressBar {
     fn set_new_file(&mut self, file_path: &Path) {
+        if !self.is_logging_active {
+            return;
+        }
         if let Some(file_name) = file_path.file_name() {
             if let Some(file_name_str) = file_name.to_str() {
                 self.progress_bar.print_new_file(file_name_str);
@@ -30,7 +34,7 @@ impl ProgressCounter for ProgressBar {
         self.consumed_size += lenght;
         let approximate_number_of_bars: usize =
             (self.fraction_of_consume() * (self.total_of_bars as f64)).round() as usize;
-        if !self.finished {
+        if !self.finished && self.is_logging_active {
             self.progress_bar.draw_a_bar(approximate_number_of_bars);
         }
         self.finished = approximate_number_of_bars == self.total_of_bars;
@@ -44,6 +48,7 @@ impl ProgressBar {
         progress_bar_position: u16,
         total_of_progress_bar: u16,
         stout_mutex: Arc<Mutex<Stdout>>,
+        is_logging_active: bool,
     ) -> Self {
         const NUMBER_OF_BARS: usize = 25;
         let (_, stdout_position) = position().unwrap();
@@ -58,6 +63,7 @@ impl ProgressBar {
             ),
             total_of_bars: NUMBER_OF_BARS,
             finished: false,
+            is_logging_active,
         }
     }
     fn fraction_of_consume(&self) -> f64 {

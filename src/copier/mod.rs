@@ -12,8 +12,8 @@ impl Copier {
     pub fn from_folder_to_dir() -> Self {
         Self { paused: false }
     }
-    pub fn start(&mut self, files: impl Iterator<Item = FileCopy>) {
-        let pool = CopierPool::new(5);
+    pub fn start(&mut self, files: impl Iterator<Item = FileCopy>, is_logging_active: bool) {
+        let pool = CopierPool::new(5, is_logging_active);
 
         for mut file_copy in files {
             if !self.paused {

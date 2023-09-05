@@ -23,19 +23,22 @@ type WorkerJob<T> = Box<dyn FnOnce(&mut T) + Send + 'static>;
 type Job<T> = (WorkerJob<T>, usize);
 // TODO: try to implement rown robin
 impl CopierPool<ProgressBar> {
-    pub fn new(worker_number: usize) -> Self {
+    pub fn new(worker_number: usize, is_logging_active: bool) -> Self {
         assert!(worker_number > 0);
         let (sender, receiver) = mpsc::channel();
         let mut workers = Vec::with_capacity(worker_number);
         let receiver = Arc::new(Mutex::new(receiver));
         let shared_stdout = Arc::new(Mutex::new(stdout()));
-        clean_terminal();
+        if is_logging_active {
+            clean_terminal();
+        }
         for id in 0..worker_number {
             workers.push(Worker::new(
                 id,
                 worker_number,
                 Arc::clone(&receiver),
                 Arc::clone(&shared_stdout),
+                is_logging_active,
             ));
         }
 
@@ -75,8 +78,14 @@ impl Worker {
         total_of_workers: usize,
         receiver: Arc<Mutex<Receiver<Job<ProgressBar>>>>,
         shared_stdout: Arc<Mutex<Stdout>>,
+        is_logging_active: bool,
     ) -> Worker {
-        let mut progress_bar = ProgressBar::new(id as u16, total_of_workers as u16, shared_stdout);
+        let mut progress_bar = ProgressBar::new(
+            id as u16,
+            total_of_workers as u16,
+            shared_stdout,
+            is_logging_active,
+        );
         let mut job_queue = LinkedList::new();
         let thread = thread::spawn(move || loop {
             let message = receiver.lock().unwrap().recv();

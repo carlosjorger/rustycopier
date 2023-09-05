@@ -24,10 +24,10 @@ fn copy_to_path(source: &Path, target_path: &Path) {
     let source_path = &source.to_path_buf();
     let mut folder = copier::FileToCopy::from_path(source_path);
     folder.load_files_from_path().unwrap();
-    folder.copy_to(target_path);
+    folder.copy_to(target_path, false);
 }
-fn copy_1000_files(c: &mut Criterion) {
-    const NUMBER_OF_FILES: usize = 100;
+fn copy_200_files(c: &mut Criterion) {
+    const NUMBER_OF_FILES: usize = 200;
     c.bench_function("coping_benchmark", |b| {
         b.iter(|| copy_files(black_box(NUMBER_OF_FILES)));
     });
@@ -78,5 +78,5 @@ fn get_example_text<'a>() -> &'a [u8; 1037] {
                             It may be strict, but it's worth the fight
                             For a language that's powerful and right."
 }
-criterion_group!(benches, copy_1000_files);
+criterion_group!(benches, copy_200_files);
 criterion_main!(benches);

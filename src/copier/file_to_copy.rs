@@ -60,16 +60,15 @@ impl<'a> FileToCopy<'a> {
         self.total_size += file_size;
         self.file_paths.push(file_path);
     }
-    pub fn copy_to(&mut self, target_path: &Path) {
+    pub fn copy_to(&mut self, target_path: &Path, is_logging_active: bool) {
         self.create_source_folder(target_path);
         let copies = self.file_paths.iter().map(|path: &PathBuf| {
             let target_path = self.get_file_path_inside_folder(path, target_path);
             self.create_parent_folder(&target_path);
             FileCopy::from_files(target_path, path.to_path_buf()).unwrap()
         });
-
         let mut copier = Copier::from_folder_to_dir();
-        copier.start(copies);
+        copier.start(copies, is_logging_active);
     }
     fn create_parent_folder(&self, file_path: &Path) {
         if let Some(parent_folder) = file_path.parent() {

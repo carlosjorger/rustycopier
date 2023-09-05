@@ -68,5 +68,5 @@ fn copy_to_path(source: &Path, target_path: &Path) {
     let source_path = &source.to_path_buf();
     let mut folder: FileToCopy = FileToCopy::from_path(source_path);
     folder.load_files_from_path().unwrap();
-    folder.copy_to(target_path);
+    folder.copy_to(target_path, true);
 }
