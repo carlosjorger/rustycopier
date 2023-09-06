@@ -6,7 +6,7 @@ use crate::copier::FileToCopy;
 use clap::Parser;
 use std::time::Instant;
 // TODO: add integration tests
-// TODO: apply this doc https://rust-cli.github.io/book/tutorial/testing.html
+// TODO: apply this doc https://rust-cli.github.io/book/in-depth/human-communication.html
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = config::Config::parse();
     let start = Instant::now();
