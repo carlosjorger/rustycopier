@@ -17,6 +17,9 @@ jobs:
       matrix:
         # You can add more, for any target you'd like!
         include:
+          - build: windows
+            os: windows-latest
+            target: x86_64-pc-windows
           - build: linux
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
