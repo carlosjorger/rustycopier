@@ -1,3 +1,4 @@
+#[cfg(test)]
 use std::{fs::create_dir, path::Path};
 
 use assert_fs::prelude::{FileWriteStr, PathAssert, PathChild};

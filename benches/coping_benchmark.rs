@@ -1,25 +1,17 @@
+use std::fs::create_dir;
 #[cfg(test)]
-use std::{
-    fs::{self, File},
-    io::{self, Write},
-    path::{Path, PathBuf},
-};
+use std::path::Path;
 
+use assert_fs::prelude::{FileWriteStr, PathAssert, PathChild};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
-use tempdir::TempDir;
-#[path = "../src/copier/mod.rs"] // Here
+#[path = "../src/copier/mod.rs"] //
 mod copier;
-#[path = "../src/copier_pool.rs"] // Here
+#[path = "../src/copier_pool.rs"] //
 mod copier_pool;
-#[path = "../src/progress_counter/mod.rs"] // Here
+#[path = "../src/progress_counter/mod.rs"] //
 mod progress_counter;
-fn create_file(file_path: &PathBuf, content: &[u8]) -> Result<(), io::Error> {
-    let mut file_source = File::create(file_path)?;
 
-    file_source.write_all(content)?;
-    Ok(())
-}
 fn copy_to_path(source: &Path, target_path: &Path) {
     let source_path = &source.to_path_buf();
     let mut folder = copier::FileToCopy::from_path(source_path);
@@ -33,32 +25,29 @@ fn copy_200_files(c: &mut Criterion) {
     });
 }
 fn copy_files(number_of_files: usize) {
-    let source_dir = TempDir::new("my_source_dir").expect("unable create a dir");
-    let msg = get_example_text();
+    let temp_root = assert_fs::TempDir::new().unwrap();
+    let poetry = get_random_poetry();
+    let source_folder = temp_root.child("my_source_folder");
+    create_dir(&source_folder).unwrap();
+
     for file_number in 0..number_of_files {
-        let file_source_path: std::path::PathBuf =
-            source_dir.path().join(format!("poetry{}.txt", file_number));
-
-        create_file(&file_source_path, msg).unwrap();
+        let file = temp_root.child(format!("my_source_folder/poetry{}.txt", file_number));
+        file.write_str(poetry).unwrap();
     }
-    let source_dir_str = source_dir.path().to_path_buf();
-    let destiny_temp_dir = TempDir::new("my_destiny_dir").expect("unable create a dir");
+    let target_folder = temp_root.child("my_targer_folder");
+    create_dir(&target_folder).unwrap();
 
-    copy_to_path(&source_dir_str, destiny_temp_dir.path());
-    let msg_vector = msg.to_vec();
+    copy_to_path(&source_folder, &target_folder);
     (0..number_of_files)
         .into_par_iter()
         .for_each(|file_number| {
-            let file_destiny_path: std::path::PathBuf = destiny_temp_dir
-                .path()
-                .join(source_dir.path().file_name().unwrap())
-                .join(format!("poetry{}.txt", file_number));
-            let new_msg = fs::read(file_destiny_path).unwrap();
-            assert_eq!(msg_vector, new_msg);
+            let copied_file =
+                temp_root.child(format!("my_source_folder/poetry{}.txt", file_number));
+            copied_file.assert(poetry);
         });
 }
-fn get_example_text<'a>() -> &'a [u8; 1037] {
-    b"In the world of coding, a language stands
+fn get_random_poetry<'a>() -> &'a str {
+    "In the world of coding, a language stands
                             Rust, they call it, with its own demands
                             It's strict and crotchety, some may say
                             But its power and speed are here to stay
@@ -78,5 +67,6 @@ fn get_example_text<'a>() -> &'a [u8; 1037] {
                             It may be strict, but it's worth the fight
                             For a language that's powerful and right."
 }
+
 criterion_group!(benches, copy_200_files);
 criterion_main!(benches);
