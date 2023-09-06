@@ -25,7 +25,7 @@ jobs:
           override: true
 
       - name: Build
-        run: cargo build --all --release && strip target/release/PROJECT_NAME && mv target/release/PROJECT_NAME target/release/PROJECT_NAME_amd64
+        run: cargo build --all --release && strip target/release/rustycopier && mv target/release/rustycopier target/release/PROJECT_NAME_amd64
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -57,7 +57,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: target/release/PROJECT_NAME.exe
+          files: target/release/rustycopier.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -77,7 +77,7 @@ jobs:
           override: true
 
       - name: Build for mac
-        run: cargo build --all --release && strip target/release/PROJECT_NAME && mv target/release/PROJECT_NAME target/release/PROJECT_NAME_darwin
+        run: cargo build --all --release && strip target/release/rustycopier && mv target/release/rustycopier target/release/PROJECT_NAME_darwin
 
       - name: Release
         uses: softprops/action-gh-release@v1
