@@ -79,6 +79,7 @@ impl ProgressBarDrawer {
     ) -> Self {
         let bar = ProgressBar::new(total_size_of_bar as u64);
         bar.set_draw_target(ProgressDrawTarget::stdout());
+        // TODO: Set the file at the end of the progress bar https://github.com/console-rs/indicatif/blob/main/examples/multi.rs
         bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
         .unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
