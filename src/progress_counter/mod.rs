@@ -1,5 +1,5 @@
 pub mod progress_bar;
-pub use progress_bar::ProgressBar;
+pub use progress_bar::CustomProgressBar;
 use std::path::Path;
 
 pub trait ProgressCounter {

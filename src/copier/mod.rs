@@ -4,7 +4,7 @@ pub use file_copy::FileCopy;
 pub use file_to_copy::FileToCopy;
 #[cfg(test)]
 mod file_to_copy_test;
-use crate::{copier_pool::CopierPool, progress_counter::ProgressBar};
+use crate::{copier_pool::CopierPool, progress_counter::CustomProgressBar};
 pub struct Copier {
     paused: bool,
 }
@@ -19,7 +19,7 @@ impl Copier {
             if !self.paused {
                 let file_size = file_copy.source_file_path.metadata().unwrap().len() as usize;
                 pool.execute(
-                    move |bar: &mut ProgressBar| {
+                    move |bar: &mut CustomProgressBar| {
                         file_copy.create_file(bar).expect("error copy the file");
                     },
                     file_size,

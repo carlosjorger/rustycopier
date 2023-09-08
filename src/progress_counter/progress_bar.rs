@@ -2,23 +2,24 @@ use crossterm::{
     cursor::{self, position},
     terminal, QueueableCommand,
 };
+use indicatif::{ProgressBar, ProgressDrawTarget, ProgressState, ProgressStyle};
 use std::{
-    io::{Stdout, Write},
+    fmt::Write,
+    io::{Stdout, Write as ioWrite},
     path::Path,
     sync::{Arc, Mutex, MutexGuard},
 };
 
 use super::ProgressCounter;
 
-pub struct ProgressBar {
+pub struct CustomProgressBar {
     total_size: usize,
     consumed_size: usize,
     progress_bar: ProgressBarDrawer,
-    total_of_bars: usize,
     finished: bool,
     is_logging_active: bool,
 }
-impl ProgressCounter for ProgressBar {
+impl ProgressCounter for CustomProgressBar {
     fn set_new_file(&mut self, file_path: &Path) {
         if !self.is_logging_active {
             return;
@@ -29,89 +30,74 @@ impl ProgressCounter for ProgressBar {
             }
         }
     }
-
     fn consume(&mut self, lenght: usize) {
         self.consumed_size += lenght;
-        let approximate_number_of_bars: usize =
-            (self.fraction_of_consume() * (self.total_of_bars as f64)).round() as usize;
         if !self.finished && self.is_logging_active {
-            self.progress_bar.draw_a_bar(approximate_number_of_bars);
+            self.progress_bar.draw_a_bar(self.consumed_size);
         }
-        self.finished = approximate_number_of_bars == self.total_of_bars;
+        self.finished = self.consumed_size == self.total_size;
     }
     fn add_size(&mut self, size: usize) {
         self.total_size += size;
+        self.progress_bar.bar.set_length(self.total_size as u64);
     }
 }
-impl ProgressBar {
+impl CustomProgressBar {
     pub fn new(
         progress_bar_position: u16,
         total_of_progress_bar: u16,
         stout_mutex: Arc<Mutex<Stdout>>,
         is_logging_active: bool,
     ) -> Self {
-        const NUMBER_OF_BARS: usize = 25;
         let (_, stdout_position) = position().unwrap();
         Self {
             total_size: 0,
             consumed_size: 0,
             progress_bar: ProgressBarDrawer::progress_bar(
-                NUMBER_OF_BARS,
+                0,
                 stdout_position + progress_bar_position * 2,
                 stdout_position + total_of_progress_bar * 2,
                 stout_mutex,
             ),
-            total_of_bars: NUMBER_OF_BARS,
             finished: false,
             is_logging_active,
         }
     }
-    fn fraction_of_consume(&self) -> f64 {
-        (self.consumed_size as f64) / (self.total_size as f64)
-    }
 }
 struct ProgressBarDrawer {
     stdout: Arc<Mutex<Stdout>>,
-    total_number_of_bars: usize,
-    progress_window: String,
-    rest_window: String,
     stdout_position: u16,
     final_stdout_position: u16,
+    bar: ProgressBar,
 }
 impl ProgressBarDrawer {
     fn progress_bar(
-        total_number_of_bars: usize,
+        total_size_of_bar: usize,
         stdout_position: u16,
         final_stdout_position: u16,
         stout_mutex: Arc<Mutex<Stdout>>,
     ) -> Self {
-        let progress_window = "=".repeat(total_number_of_bars);
-        let rest_window = "-".repeat(total_number_of_bars);
+        let bar = ProgressBar::new(total_size_of_bar as u64);
+        bar.set_draw_target(ProgressDrawTarget::stdout());
+        bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+        .unwrap()
+        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
+        .progress_chars("#>-"));
         Self {
             stdout: stout_mutex,
-            total_number_of_bars,
-            progress_window,
-            rest_window,
             stdout_position,
             final_stdout_position,
+            bar,
         }
     }
     fn draw_a_bar(&mut self, number_of_bars: usize) {
         let mut stdout_result = self.stdout.lock().unwrap();
-        self.move_line_and_clean(self.stdout_position, &mut stdout_result);
-        // TODO: test https://crates.io/crates/indicatif crates
-        print!(
-            "\r[{}{}] {}%",
-            &self.progress_window[0..number_of_bars],
-            &self.rest_window[0..(self.total_number_of_bars - number_of_bars)],
-            self.percentage_of_number_of_bars(number_of_bars),
-        );
+        self.move_to_line(self.stdout_position, &mut stdout_result);
+        self.bar.set_position(number_of_bars as u64);
         self.move_to_line(self.final_stdout_position, &mut stdout_result);
         stdout_result.flush().unwrap();
     }
-    fn percentage_of_number_of_bars(&self, number_of_bars: usize) -> f64 {
-        (number_of_bars as f64 * (100.0 / (self.total_number_of_bars as f64))).trunc()
-    }
+
     fn print_new_file(&self, file_name: &str) {
         let mut stdout_result = self.stdout.lock().unwrap();
         self.move_line_and_clean(self.stdout_position + 1, &mut stdout_result);

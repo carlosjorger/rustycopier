@@ -14,7 +14,7 @@ use crossterm::{
     QueueableCommand,
 };
 
-use crate::progress_counter::{ProgressBar, ProgressCounter};
+use crate::progress_counter::{CustomProgressBar, ProgressCounter};
 pub struct CopierPool<T: ProgressCounter> {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job<T>>>,
@@ -22,7 +22,7 @@ pub struct CopierPool<T: ProgressCounter> {
 type WorkerJob<T> = Box<dyn FnOnce(&mut T) + Send + 'static>;
 type Job<T> = (WorkerJob<T>, usize);
 // TODO: try to implement rown robin
-impl CopierPool<ProgressBar> {
+impl CopierPool<CustomProgressBar> {
     pub fn new(worker_number: usize, is_logging_active: bool) -> Self {
         assert!(worker_number > 0);
         let (sender, receiver) = mpsc::channel();
@@ -50,7 +50,7 @@ impl CopierPool<ProgressBar> {
 
     pub fn execute<F>(&self, f: F, file_size: usize)
     where
-        F: FnOnce(&mut ProgressBar) + Send + 'static,
+        F: FnOnce(&mut CustomProgressBar) + Send + 'static,
     {
         let job = Box::new(f);
         if let Some(sender) = self.sender.as_ref() {
@@ -76,11 +76,11 @@ impl Worker {
     fn new(
         id: usize,
         total_of_workers: usize,
-        receiver: Arc<Mutex<Receiver<Job<ProgressBar>>>>,
+        receiver: Arc<Mutex<Receiver<Job<CustomProgressBar>>>>,
         shared_stdout: Arc<Mutex<Stdout>>,
         is_logging_active: bool,
     ) -> Worker {
-        let mut progress_bar = ProgressBar::new(
+        let mut progress_bar = CustomProgressBar::new(
             id as u16,
             total_of_workers as u16,
             shared_stdout,
