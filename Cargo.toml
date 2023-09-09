@@ -18,6 +18,7 @@ clap = { version = "4.0", features = ["derive", "cargo", "env"] }
 anyhow="1.0.75"
 assert_fs = "1.0.13"
 indicatif="0.17.6"
+colored="2.0.4"
 [dev-dependencies]
 criterion="0.5.1"
 

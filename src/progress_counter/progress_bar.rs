@@ -1,3 +1,4 @@
+use colored::Colorize;
 use crossterm::{
     cursor::{self, position},
     terminal, QueueableCommand,
@@ -79,7 +80,6 @@ impl ProgressBarDrawer {
     ) -> Self {
         let bar = ProgressBar::new(total_size_of_bar as u64);
         bar.set_draw_target(ProgressDrawTarget::stdout());
-        // TODO: Set the file at the end of the progress bar https://github.com/console-rs/indicatif/blob/main/examples/multi.rs
         bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
         .unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
@@ -102,7 +102,7 @@ impl ProgressBarDrawer {
     fn print_new_file(&self, file_name: &str) {
         let mut stdout_result = self.stdout.lock().unwrap();
         self.move_line_and_clean(self.stdout_position + 1, &mut stdout_result);
-        print!("Copying {file_name}...");
+        print!("{}", format!("· {}...", file_name).green());
         stdout_result.flush().unwrap();
     }
     fn move_line_and_clean(&self, position: u16, stdout: &mut MutexGuard<'_, Stdout>) {
