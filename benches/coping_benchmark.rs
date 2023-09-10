@@ -11,7 +11,8 @@ mod copier;
 mod copier_pool;
 #[path = "../src/progress_counter/mod.rs"] //
 mod progress_counter;
-
+#[path = "../utils/test_utils.rs"] //
+mod test_utils;
 fn copy_to_path(source: &Path, target_path: &Path) {
     let source_path = &source.to_path_buf();
     let mut folder = copier::FileToCopy::from_path(source_path);
@@ -26,7 +27,7 @@ fn copy_200_files(c: &mut Criterion) {
 }
 fn copy_files(number_of_files: usize) {
     let temp_root = assert_fs::TempDir::new().unwrap();
-    let poetry = get_random_poetry();
+    let poetry = test_utils::get_random_poetry();
     let source_folder = temp_root.child("my_source_folder");
     create_dir(&source_folder).unwrap();
 
@@ -45,27 +46,6 @@ fn copy_files(number_of_files: usize) {
                 temp_root.child(format!("my_source_folder/poetry{}.txt", file_number));
             copied_file.assert(poetry);
         });
-}
-fn get_random_poetry<'a>() -> &'a str {
-    "In the world of coding, a language stands
-                            Rust, they call it, with its own demands
-                            It's strict and crotchety, some may say
-                            But its power and speed are here to stay
-
-                            Its syntax may seem a bit obtuse
-                            But its memory safety is no excuse
-                            For sloppy code that could bring down
-                            An entire system with just one frown
-
-                            Rust is compiled, not interpreted
-                            And its performance can't be debated
-                            It's perfect for systems and low-level tasks
-                            And its community is growing fast
-
-                            So if you're feeling crotchety today
-                            Give Rust a chance, don't turn away
-                            It may be strict, but it's worth the fight
-                            For a language that's powerful and right."
 }
 
 criterion_group!(benches, copy_200_files);
