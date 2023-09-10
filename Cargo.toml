@@ -21,6 +21,7 @@ indicatif="0.17.6"
 colored="2.0.4"
 [dev-dependencies]
 criterion="0.5.1"
+assert_cmd="2.0.12"
 
 [[bench]]
 name="coping_benchmark"
