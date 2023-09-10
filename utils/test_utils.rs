@@ -1,4 +1,4 @@
-//TODO: convert into a module
+//TODO: convert into a module (inside src folder)
 //TODO: create create a temp child folder function
 //TODO: create a temp child file
 pub fn get_random_poetry<'a>() -> &'a str {
