@@ -59,6 +59,7 @@ impl CustomProgressBar {
                 stdout_position + progress_bar_position * 2,
                 stdout_position + total_of_progress_bar * 2,
                 stout_mutex,
+                is_logging_active,
             ),
             finished: false,
             is_logging_active,
@@ -77,6 +78,7 @@ impl ProgressBarDrawer {
         stdout_position: u16,
         final_stdout_position: u16,
         stout_mutex: Arc<Mutex<Stdout>>,
+        is_logging_active: bool,
     ) -> Self {
         let bar = ProgressBar::new(total_size_of_bar as u64);
         bar.set_draw_target(ProgressDrawTarget::stdout());
@@ -84,6 +86,9 @@ impl ProgressBarDrawer {
         .unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
         .progress_chars("#>-"));
+        if !is_logging_active {
+            bar.finish_and_clear();
+        }
         Self {
             stdout: stout_mutex,
             stdout_position,
