@@ -1,20 +1,21 @@
 use std::{
-    collections::LinkedList,
-    io::{stdout, Stdout, Write},
+    io::{stdout, Write},
     sync::{
-        mpsc::{self, Receiver},
+        mpsc::{self},
         Arc, Mutex,
     },
-    thread,
 };
 
+use crate::progress_counter::{CustomProgressBar, ProgressCounter};
 use crossterm::{
     cursor::{self},
     terminal::size,
     QueueableCommand,
 };
 
-use crate::progress_counter::{CustomProgressBar, ProgressCounter};
+use self::worker::Worker;
+pub mod worker;
+
 pub struct CopierPool<T: ProgressCounter> {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job<T>>>,
@@ -68,52 +69,6 @@ impl<T: ProgressCounter> Drop for CopierPool<T> {
         }
     }
 }
-struct Worker {
-    load_jobs_thread: Option<thread::JoinHandle<()>>,
-}
-
-impl Worker {
-    fn new(
-        id: usize,
-        total_of_workers: usize,
-        receiver: Arc<Mutex<Receiver<Job<CustomProgressBar>>>>,
-        shared_stdout: Arc<Mutex<Stdout>>,
-        is_logging_active: bool,
-    ) -> Worker {
-        let mut progress_bar = CustomProgressBar::new(
-            id as u16,
-            total_of_workers as u16,
-            shared_stdout,
-            is_logging_active,
-        );
-        let mut job_queue = LinkedList::new();
-        let thread = thread::spawn(move || loop {
-            let message = receiver.lock().unwrap().recv();
-            match message {
-                Ok((job, file_size)) => {
-                    progress_bar.add_size(file_size);
-                    job_queue.push_back(job);
-                }
-                Err(_) => {
-                    execute_jobs_queue(&mut job_queue, &mut progress_bar);
-                    break;
-                }
-            }
-        });
-        Worker {
-            load_jobs_thread: Some(thread),
-        }
-    }
-}
-fn execute_jobs_queue<T: ProgressCounter>(
-    job_queue: &mut LinkedList<WorkerJob<T>>,
-    progress_bar: &mut T,
-) {
-    while let Some(job) = job_queue.pop_back() {
-        job(progress_bar);
-    }
-}
-
 fn clean_terminal() {
     let (_, terminal_length) = size().unwrap();
     println!("Copy in progress....");

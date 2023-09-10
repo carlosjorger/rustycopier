@@ -7,7 +7,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 #[path = "../src/copier/mod.rs"] //
 mod copier;
-#[path = "../src/copier_pool.rs"] //
+#[path = "../src/copier_pool/mod.rs"] //
 mod copier_pool;
 #[path = "../src/progress_counter/mod.rs"] //
 mod progress_counter;
