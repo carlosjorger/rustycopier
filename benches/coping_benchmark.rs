@@ -28,16 +28,15 @@ fn copy_200_files(c: &mut Criterion) {
 fn copy_files(number_of_files: usize) {
     let temp_root = assert_fs::TempDir::new().unwrap();
     let poetry = utils::test_utils::get_random_poetry();
-    let source_folder = temp_root.child("my_source_folder");
-    create_dir(&source_folder).unwrap();
-
+    let source_folder = utils::test_utils::create_temp_child_folder(&temp_root, "my_source_folder");
     for file_number in 0..number_of_files {
-        let file = temp_root.child(format!("my_source_folder/poetry{}.txt", file_number));
-        file.write_str(poetry).unwrap();
+        let _ = utils::test_utils::create_temp_child_file(
+            &temp_root,
+            format!("my_source_folder/poetry{}.txt", file_number).as_str(),
+            poetry,
+        );
     }
-    let target_folder = temp_root.child("my_targer_folder");
-    create_dir(&target_folder).unwrap();
-
+    let target_folder = utils::test_utils::create_temp_child_folder(&temp_root, "my_targer_folder");
     copy_to_path(&source_folder, &target_folder);
     (0..number_of_files)
         .into_par_iter()

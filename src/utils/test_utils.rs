@@ -1,6 +1,10 @@
 use std::fs::create_dir;
 
-use assert_fs::{fixture::ChildPath, prelude::PathChild, TempDir};
+use assert_fs::{
+    fixture::ChildPath,
+    prelude::{FileWriteStr, PathChild},
+    TempDir,
+};
 
 //TODO: create a temp child file
 #[allow(dead_code)]
@@ -30,4 +34,10 @@ pub fn create_temp_child_folder(root: &TempDir, folder_name: &str) -> ChildPath 
     let target_folder = root.child(folder_name);
     create_dir(&target_folder).unwrap();
     target_folder
+}
+#[allow(dead_code)]
+pub fn create_temp_child_file(root: &TempDir, file_path: &str, data: &str) -> ChildPath {
+    let file = root.child(file_path);
+    file.write_str(data).unwrap();
+    file
 }
