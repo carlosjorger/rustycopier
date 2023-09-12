@@ -2,15 +2,14 @@
 use super::FileToCopy;
 use crate::utils::test_utils;
 use assert_fs::prelude::{FileWriteStr, PathAssert, PathChild};
-use std::{fs::create_dir, path::Path};
+use std::path::Path;
 #[test]
 fn copy_one_file_in_a_folder() {
     let temp_root = assert_fs::TempDir::new().unwrap();
     let file = temp_root.child("poetry.txt");
     let poetry = test_utils::get_random_poetry();
     file.write_str(poetry).unwrap();
-    let temp_folder = temp_root.child("my_targer_folder");
-    create_dir(&temp_folder).unwrap();
+    let temp_folder = test_utils::create_temp_child_folder(&temp_root, "my_targer_folder");
     copy_to_path(&file, &temp_folder);
     let copied_file = temp_folder.child("poetry.txt");
     copied_file.assert(poetry);
@@ -33,8 +32,7 @@ fn copy_a_nested_folder_in_a_folder() {
     let file = temp_root.child("my_source_folder/poetries/love/poetry.txt");
     let poetry = test_utils::get_random_poetry();
     file.write_str(poetry).unwrap();
-    let temp_folder = temp_root.child("my_targer_folder");
-    create_dir(&temp_folder).unwrap();
+    let temp_folder = test_utils::create_temp_child_folder(&temp_root, "my_targer_folder");
     let source_folder = temp_root.child("my_source_folder");
     copy_to_path(&source_folder, &temp_folder);
     let copied_file = temp_folder.child("my_source_folder/poetries/love/poetry.txt");
