@@ -5,8 +5,6 @@ use assert_fs::{
     prelude::{FileWriteStr, PathChild},
     TempDir,
 };
-
-//TODO: create a temp child file
 #[allow(dead_code)]
 pub fn get_random_poetry<'a>() -> &'a str {
     "In the world of coding, a language stands
