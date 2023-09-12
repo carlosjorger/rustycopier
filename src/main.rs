@@ -5,6 +5,7 @@ mod progress_counter;
 use crate::copier::FileToCopy;
 use clap::Parser;
 use std::time::Instant;
+mod utils;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = config::Config::parse();
     let start = Instant::now();

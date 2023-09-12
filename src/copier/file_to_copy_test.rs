@@ -1,11 +1,8 @@
 #[cfg(test)]
-use std::{fs::create_dir, path::Path};
-
-use assert_fs::prelude::{FileWriteStr, PathAssert, PathChild};
-
 use super::FileToCopy;
-#[path = "../../utils/test_utils.rs"] //
-mod test_utils;
+use crate::utils::test_utils;
+use assert_fs::prelude::{FileWriteStr, PathAssert, PathChild};
+use std::{fs::create_dir, path::Path};
 #[test]
 fn copy_one_file_in_a_folder() {
     let temp_root = assert_fs::TempDir::new().unwrap();
@@ -24,8 +21,7 @@ fn copy_one_folder_in_a_folder() {
     let file = temp_root.child("my_source_folder/poetry.txt");
     let poetry = test_utils::get_random_poetry();
     file.write_str(poetry).unwrap();
-    let target_folder = temp_root.child("my_targer_folder");
-    create_dir(&target_folder).unwrap();
+    let target_folder = test_utils::create_temp_child_folder(&temp_root, "my_targer_folder");
     let source_folder = temp_root.child("my_source_folder");
     copy_to_path(&source_folder, &target_folder);
     let copied_file = target_folder.child("my_source_folder/poetry.txt");

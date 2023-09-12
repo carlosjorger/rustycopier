@@ -1,6 +1,9 @@
-//TODO: convert into a module (inside src folder)
-//TODO: create create a temp child folder function
+use std::fs::create_dir;
+
+use assert_fs::{fixture::ChildPath, prelude::PathChild, TempDir};
+
 //TODO: create a temp child file
+#[allow(dead_code)]
 pub fn get_random_poetry<'a>() -> &'a str {
     "In the world of coding, a language stands
                             Rust, they call it, with its own demands
@@ -21,4 +24,10 @@ pub fn get_random_poetry<'a>() -> &'a str {
                             Give Rust a chance, don't turn away
                             It may be strict, but it's worth the fight
                             For a language that's powerful and right."
+}
+#[allow(dead_code)]
+pub fn create_temp_child_folder(root: &TempDir, folder_name: &str) -> ChildPath {
+    let target_folder = root.child(folder_name);
+    create_dir(&target_folder).unwrap();
+    target_folder
 }
