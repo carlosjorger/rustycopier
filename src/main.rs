@@ -1,11 +1,11 @@
 mod config;
-pub mod copier;
+mod copier;
 mod copier_pool;
 mod progress_counter;
+mod utils;
 use crate::copier::FileToCopy;
 use clap::Parser;
 use std::time::Instant;
-mod utils;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = config::Config::parse();
     let start = Instant::now();

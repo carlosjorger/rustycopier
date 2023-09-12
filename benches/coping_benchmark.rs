@@ -1,8 +1,7 @@
-use std::fs::create_dir;
 #[cfg(test)]
 use std::path::Path;
 
-use assert_fs::prelude::{FileWriteStr, PathAssert, PathChild};
+use assert_fs::prelude::{PathAssert, PathChild};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 #[path = "../src/copier/mod.rs"] //
@@ -13,11 +12,11 @@ mod copier_pool;
 mod progress_counter;
 #[path = "../src/utils/mod.rs"] //
 mod utils;
-fn copy_to_path(source: &Path, target_path: &Path) {
+fn copy_to_path(source: &Path, target_path: &Path, is_logging_active: bool) {
     let source_path = &source.to_path_buf();
     let mut folder = copier::FileToCopy::from_path(source_path);
     folder.load_files_from_path().unwrap();
-    folder.copy_to(target_path, false);
+    folder.copy_to(target_path, is_logging_active);
 }
 fn copy_200_files(c: &mut Criterion) {
     const NUMBER_OF_FILES: usize = 200;
@@ -37,7 +36,7 @@ fn copy_files(number_of_files: usize) {
         );
     }
     let target_folder = utils::test_utils::create_temp_child_folder(&temp_root, "my_targer_folder");
-    copy_to_path(&source_folder, &target_folder);
+    copy_to_path(&source_folder, &target_folder, false);
     (0..number_of_files)
         .into_par_iter()
         .for_each(|file_number| {
