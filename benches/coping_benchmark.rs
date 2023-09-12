@@ -11,8 +11,8 @@ mod copier;
 mod copier_pool;
 #[path = "../src/progress_counter/mod.rs"] //
 mod progress_counter;
-#[path = "../utils/test_utils.rs"] //
-mod test_utils;
+#[path = "../src/utils/mod.rs"] //
+mod utils;
 fn copy_to_path(source: &Path, target_path: &Path) {
     let source_path = &source.to_path_buf();
     let mut folder = copier::FileToCopy::from_path(source_path);
@@ -27,7 +27,7 @@ fn copy_200_files(c: &mut Criterion) {
 }
 fn copy_files(number_of_files: usize) {
     let temp_root = assert_fs::TempDir::new().unwrap();
-    let poetry = test_utils::get_random_poetry();
+    let poetry = utils::test_utils::get_random_poetry();
     let source_folder = temp_root.child("my_source_folder");
     create_dir(&source_folder).unwrap();
 
